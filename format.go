@@ -1,6 +1,7 @@
 package nut
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -9,7 +10,12 @@ func parseString(input string) (string, bool) {
 }
 
 func parseInt(input string) (int64, bool) {
-	return 0, false
+	i, err := strconv.ParseInt(input, 0, 64)
+	if err != nil {
+		return 0, false
+	}
+
+	return i, true
 }
 
 func parseBool(input string) (bool, bool) {
