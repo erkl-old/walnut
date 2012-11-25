@@ -98,7 +98,52 @@ var durationTests = []struct {
 	out time.Duration
 	ok  bool
 }{
-	// @todo: tests go here
+	// simple formats
+	{"0", 0, true},
+	{"0s", 0, true},
+	{"5s", 5 * time.Second, true},
+	{"37s", 37 * time.Second, true},
+	{"010s", 10 * time.Second, true},
+	{"3d", 3 * 24 * time.Hour, true},
+
+	// all units
+	{"10ns", 10 * time.Nanosecond, true},
+	{"10µs", 10 * time.Microsecond, true},
+	{"10μs", 10 * time.Microsecond, true},
+	{"10us", 10 * time.Microsecond, true},
+	{"10ms", 10 * time.Millisecond, true},
+	{"10s", 10 * time.Second, true},
+	{"10m", 10 * time.Minute, true},
+	{"10h", 10 * time.Hour, true},
+	{"10d", 10 * 24 * time.Hour, true},
+	{"10w", 10 * 7 * 24 * time.Hour, true},
+
+	// mixed units
+	{"1h1m1s", time.Hour + time.Minute + time.Second, true},
+	{"4h30m", 4*time.Hour + 30*time.Minute, true},
+	{"1s500ms", time.Second + 500*time.Millisecond, true},
+	{"1w1d24h1440m", 10 * 24 * time.Hour, true},
+
+	// allow (ignore) spaces
+	{"1h 1m1s", time.Hour + time.Minute + time.Second, true},
+	{"4h 30m", 4*time.Hour + 30*time.Minute, true},
+	{"1s    500ms", time.Second + 500*time.Millisecond, true},
+	{"1w 1d 24h 1440m", 10 * 24 * time.Hour, true},
+
+	// disallow signs and decimal values
+	{"-3h", -1, false},
+	{"+5m", -1, false},
+	{"300.5h", -1, false},
+	{"1h 1m 1.3s", -1, false},
+	{"10w -3d", -1, false},
+	{"1.2d20m", -1, false},
+
+	// various invalid formats
+	{"", -1, false},
+	{"1sm", -1, false},
+	{"100", -1, false},
+	{"1d 200", -1, false},
+	{"3 4 5ms", -1, false},
 }
 
 var timeTests = []struct {
