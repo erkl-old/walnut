@@ -256,19 +256,19 @@ func TestParseTime(t *testing.T) {
 	}
 }
 
-// Simplify error reporting.
-type failReporter func(format string, values ...interface{})
+// Simplify failure reporting.
+type failFunc func(format string, values ...interface{})
 
-func setup(t *testing.T, fn string, input interface{}) failReporter {
+func setup(t *testing.T, signature string, input interface{}) failFunc {
 	return func(format string, values ...interface{}) {
-		t.Logf(fn+"(%#v)\n", input)
+		t.Logf(signature+"(%#v)\n", input)
 		t.Fatalf(format+"\n", values...)
 	}
 }
 
 // Convenience function for creating a `time.Time` struct of a certain value,
 // then returning a pointer to it.
-func t(value string) *time.Time {
+func moment(value string) *time.Time {
 	t, err := time.Parse("2006-01-02 15:04:05 -07:00", value)
 	if err != nil {
 		panic(err)
