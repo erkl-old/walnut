@@ -156,103 +156,113 @@ var timeTests = []struct {
 
 func TestParseString(t *testing.T) {
 	for _, test := range stringTests {
-		t.Logf("> parseString(%#v)\n", test.in)
+		fail := setup(t, "parseString", test.in)
 		out, ok := parseString(test.in)
 
 		if ok != test.ok {
 			if test.ok {
-				t.Fatalf("parsing failed unexpectedly\n")
+				fail("parsing failed unexpectedly")
 			} else {
-				t.Fatalf("parsing should not succeed\n")
+				fail("parsing should not succeed")
 			}
 		}
 
 		if out != test.out {
-			t.Fatalf("%#v != %#v\n", out, test.out)
+			fail("%#v != %#v", out, test.out)
 		}
 	}
 }
 
 func TestParseInt(t *testing.T) {
 	for _, test := range intTests {
-		t.Logf("> parseInt(%#v)\n", test.in)
+		fail := setup(t, "parseInt", test.in)
 		out, ok := parseInt(test.in)
 
 		if ok != test.ok {
 			if test.ok {
-				t.Fatalf("parsing failed unexpectedly\n")
+				fail("parsing failed unexpectedly")
 			} else {
-				t.Fatalf("parsing should not succeed\n")
+				fail("parsing should not succeed")
 			}
 		}
 
 		if out != test.out {
-			t.Fatalf("%#v != %#v\n", out, test.out)
+			fail("%#v != %#v", out, test.out)
 		}
 	}
 }
 
 func TestParseBool(t *testing.T) {
 	for _, test := range boolTests {
-		t.Logf("> parseBool(%#v)\n", test.in)
+		fail := setup(t, "parseBool", test.in)
 		out, ok := parseBool(test.in)
 
 		if ok != test.ok {
 			if test.ok {
-				t.Fatalf("parsing failed unexpectedly\n")
+				fail("parsing failed unexpectedly")
 			} else {
-				t.Fatalf("parsing should not succeed\n")
+				fail("parsing should not succeed")
 			}
 		}
 
 		if out != test.out {
-			t.Fatalf("%#v != %#v\n", out, test)
+			fail("%#v != %#v", out, test)
 		}
 	}
 }
 
 func TestParseDuration(t *testing.T) {
 	for _, test := range durationTests {
-		t.Logf("> parseDuration(%#v)\n", test.in)
+		fail := setup(t, "parseDuration", test.in)
 		out, ok := parseDuration(test.in)
 
 		if ok != test.ok {
 			if test.ok {
-				t.Fatalf("parsing failed unexpectedly\n")
+				fail("parsing failed unexpectedly")
 			} else {
-				t.Fatalf("parsing should not succeed\n")
+				fail("parsing should not succeed")
 			}
 		}
 
 		if out != test.out {
-			t.Fatalf("%#v != %#v\n", out.String(), test.out.String())
+			fail("%#v != %#v", out.String(), test.out.String())
 		}
 	}
 }
 
 func TestParseTime(t *testing.T) {
 	for _, test := range timeTests {
-		t.Logf("> parseTime(%#v)\n", test.in)
+		fail := setup(t, "parseTime", test.in)
 		out, ok := parseTime(test.in)
 
 		if ok != test.ok {
 			if test.ok {
-				t.Fatalf("parsing failed unexpectedly\n")
+				fail("parsing failed unexpectedly")
 			} else {
-				t.Fatalf("parsing should not succeed\n")
+				fail("parsing should not succeed")
 			}
 		}
 
 		if out == nil {
 			if test.out != nil {
-				t.Fatalf("returned nil\n")
+				fail("returned nil")
 			}
 			return
 		}
 
 		if !out.Equal(*test.out) {
-			t.Fatalf("%#v != %#v\n", out.String(), test.out.String())
+			fail("%#v != %#v", out.String(), test.out.String())
 		}
+	}
+}
+
+// Simplify error reporting.
+type failReporter func(format string, values ...interface{})
+
+func setup(t *testing.T, fn string, input interface{}) failReporter {
+	return func(format string, values ...interface{}) {
+		t.Logf(fn+"(%#v)\n", input)
+		t.Fatalf(format+"\n", values...)
 	}
 }
 
