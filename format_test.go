@@ -37,6 +37,7 @@ var boolTests = []struct {
 	{ "off", false, true },
 
 	// invalid
+	{ "", false, false },
 	{ "y", false, false },
 	{ "foo", false, false },
 }
