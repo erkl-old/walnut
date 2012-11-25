@@ -13,6 +13,13 @@ func parseInt(input string) (int64, bool) {
 }
 
 func parseBool(input string) (bool, bool) {
+	switch input {
+	case "true", "yes", "on":
+		return true, true
+	case "false", "no", "off":
+		return false, true
+	}
+
 	return false, false
 }
 

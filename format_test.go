@@ -26,7 +26,19 @@ var boolTests = []struct {
 	out bool
 	ok  bool
 }{
-	// @todo: tests go here
+	// truthy
+	{ "true", true, true },
+	{ "yes", true, true },
+	{ "on", true, true },
+
+	// falsy
+	{ "false", false, true },
+	{ "no", false, true },
+	{ "off", false, true },
+
+	// invalid
+	{ "y", false, false },
+	{ "foo", false, false },
 }
 
 var durationTests = []struct {
