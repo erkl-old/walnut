@@ -165,6 +165,7 @@ func TestParseString(t *testing.T) {
 			} else {
 				fail("parsing should not succeed")
 			}
+			continue
 		}
 
 		if out != test.out {
@@ -184,6 +185,7 @@ func TestParseInt(t *testing.T) {
 			} else {
 				fail("parsing should not succeed")
 			}
+			continue
 		}
 
 		if out != test.out {
@@ -203,6 +205,7 @@ func TestParseBool(t *testing.T) {
 			} else {
 				fail("parsing should not succeed")
 			}
+			continue
 		}
 
 		if out != test.out {
@@ -222,10 +225,11 @@ func TestParseDuration(t *testing.T) {
 			} else {
 				fail("parsing should not succeed")
 			}
+			continue
 		}
 
 		if out != test.out {
-			fail("%#v != %#v", out.String(), test.out.String())
+			fail("%s != %s", out.String(), test.out.String())
 		}
 	}
 }
@@ -241,17 +245,18 @@ func TestParseTime(t *testing.T) {
 			} else {
 				fail("parsing should not succeed")
 			}
+			continue
 		}
 
 		if out == nil {
 			if test.out != nil {
 				fail("returned nil")
 			}
-			return
+			continue
 		}
 
 		if !out.Equal(*test.out) {
-			fail("%#v != %#v", out.String(), test.out.String())
+			fail("%s != %s", out.String(), test.out.String())
 		}
 	}
 }
@@ -260,9 +265,9 @@ func TestParseTime(t *testing.T) {
 type failFunc func(format string, values ...interface{})
 
 func setup(t *testing.T, signature string, input interface{}) failFunc {
-	return func(format string, values ...interface{}) {
-		t.Logf(signature+"(%#v)\n", input)
-		t.Fatalf(format+"\n", values...)
+	return func(format string, values... interface{}) {
+		args := append([]interface{}{signature, input}, values...)
+		t.Errorf("%s(%#v): " + format + "\n", args...)
 	}
 }
 
