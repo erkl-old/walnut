@@ -131,19 +131,26 @@ var durationTests = []struct {
 	{"1w 1d 24h 1440m", 10 * 24 * time.Hour, true},
 
 	// disallow signs and decimal values
-	{"-3h", -1, false},
-	{"+5m", -1, false},
-	{"300.5h", -1, false},
-	{"1h 1m 1.3s", -1, false},
-	{"10w -3d", -1, false},
-	{"1.2d20m", -1, false},
+	{"-3h", 0, false},
+	{"+5m", 0, false},
+	{"300.5h", 0, false},
+	{"1h 1m 1.3s", 0, false},
+	{"10w -3d", 0, false},
+	{"1.2d20m", 0, false},
 
-	// various invalid formats
-	{"", -1, false},
-	{"1sm", -1, false},
-	{"100", -1, false},
-	{"1d 200", -1, false},
-	{"3 4 5ms", -1, false},
+	// units out of order
+	{"1s2m", 0, false},
+	{"1200ms 3s", 0, false},
+	{"4h 5d 6w 7m", 0, false},
+
+	// other invalid formats
+	{"", 0, false},
+	{"1sm", 0, false},
+	{"2 m 3 s", 0, false},
+	{"4 d5 h", 0, false},
+	{"100", 0, false},
+	{"1d 200", 0, false},
+	{"3 4 5ms", 0, false},
 }
 
 var timeTests = []struct {
