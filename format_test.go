@@ -272,9 +272,9 @@ func TestParseTime(t *testing.T) {
 type failFunc func(format string, values ...interface{})
 
 func setup(t *testing.T, signature string, input interface{}) failFunc {
-	return func(format string, values... interface{}) {
+	return func(format string, values ...interface{}) {
 		args := append([]interface{}{signature, input}, values...)
-		t.Errorf("%s(%#v): " + format + "\n", args...)
+		t.Errorf("%s(%#v): "+format+"\n", args...)
 	}
 }
 

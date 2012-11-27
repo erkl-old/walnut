@@ -126,9 +126,9 @@ func readUnit(s string) (time.Duration, int) {
 	case begins(s, "h"):
 		return time.Hour, 1
 	case begins(s, "d"):
-		return 24*time.Hour, 1
+		return 24 * time.Hour, 1
 	case begins(s, "w"):
-		return 7*24*time.Hour, 1
+		return 7 * 24 * time.Hour, 1
 	}
 
 	return 0, 0
