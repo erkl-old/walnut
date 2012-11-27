@@ -6,7 +6,16 @@ import (
 )
 
 func ParseString(input string) (string, bool) {
-	return "", false
+	if input == "" || input[0] != '"' {
+		return "", false
+	}
+
+	value, err := strconv.Unquote(input)
+	if err != nil {
+		return "", false
+	}
+
+	return value, true
 }
 
 func ParseInt(input string) (int64, bool) {

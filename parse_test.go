@@ -10,7 +10,29 @@ var stringTests = []struct {
 	out string
 	ok  bool
 }{
-	// @todo: tests go here
+	// valid
+	{`""`, "", true},
+	{`"hello"`, "hello", true},
+	{`"日本人"`, "日本人", true},
+	{`"a\nb"`, "a\nb", true},
+	{`"\u00FF"`, "ÿ", true},
+	{`"\xFF"`, "\xFF", true},
+	{`"\U00010111"`, "\U00010111", true},
+	{`"\U0001011111"`, "\U0001011111", true},
+	{`"'"`, "'", true},
+	{`"\""`, "\"", true},
+
+	// invalid
+	{``, "", false},
+	{`"lone`, "", false},
+	{`hello`, "", false},
+	{`"mismatch'`, "", false},
+	{`"\"`, "", false},
+	{`"\1"`, "", false},
+	{`"\19"`, "", false},
+	{`"\129"`, "", false},
+	{"`a`", "", false},
+	{"'b'", "", false},
 }
 
 var intTests = []struct {
