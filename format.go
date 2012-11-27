@@ -10,12 +10,12 @@ func parseString(input string) (string, bool) {
 }
 
 func parseInt(input string) (int64, bool) {
-	i, err := strconv.ParseInt(input, 0, 64)
+	value, err := strconv.ParseInt(input, 0, 64)
 	if err != nil {
 		return 0, false
 	}
 
-	return i, true
+	return value, true
 }
 
 func parseBool(input string) (bool, bool) {
@@ -35,12 +35,13 @@ func parseDuration(input string) (time.Duration, bool) {
 		return 0, false
 	}
 
-	// special case
+	// special case; forcing a unit after a zero duration
+	// wouldn't make sense
 	if input == "0" {
 		return 0, true
 	}
 
-	var total time.Duration
+	total := time.Duration(0)
 	var lastUnit time.Duration
 
 	for {
@@ -88,14 +89,14 @@ func readDigits(s string) (int64, int) {
 	total := int64(0)
 
 	for i := 0; i < len(s); i++ {
-		ch := s[i]
+		char := s[i]
 
-		// make sure we're looking at a digit
-		if ch < '0' || ch > '9' {
+		// stop on the first non-digit character
+		if char < '0' || char > '9' {
 			return total, i
 		}
 
-		digit := int64(ch - '0')
+		digit := int64(char - '0')
 		next := (total * 10) + digit
 
 		// check for integer overflows
@@ -111,30 +112,30 @@ func readDigits(s string) (int64, int) {
 
 func readUnit(s string) (time.Duration, int) {
 	switch {
-	case begins(s, "ns"):
+	case hasPrefix(s, "ns"):
 		return time.Nanosecond, 2
-	case begins(s, "μs"), begins(s, "µs"):
+	case hasPrefix(s, "μs"), hasPrefix(s, "µs"):
 		return time.Microsecond, 3
-	case begins(s, "us"):
+	case hasPrefix(s, "us"):
 		return time.Microsecond, 2
-	case begins(s, "ms"):
+	case hasPrefix(s, "ms"):
 		return time.Millisecond, 2
-	case begins(s, "s"):
+	case hasPrefix(s, "s"):
 		return time.Second, 1
-	case begins(s, "m"):
+	case hasPrefix(s, "m"):
 		return time.Minute, 1
-	case begins(s, "h"):
+	case hasPrefix(s, "h"):
 		return time.Hour, 1
-	case begins(s, "d"):
+	case hasPrefix(s, "d"):
 		return 24 * time.Hour, 1
-	case begins(s, "w"):
+	case hasPrefix(s, "w"):
 		return 7 * 24 * time.Hour, 1
 	}
 
 	return 0, 0
 }
 
-func begins(s, prefix string) bool {
+func hasPrefix(s, prefix string) bool {
 	return len(s) >= len(prefix) && s[0:len(prefix)] == prefix
 }
 
