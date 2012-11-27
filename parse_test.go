@@ -159,6 +159,9 @@ var timeTests = []struct {
 	ok  bool
 }{
 	// @todo: tests go here
+	{"1970-01-01 00:00:00 +00:00", time.Time{}, true},
+
+	{"1970-01-01  00:00:00 +00:00", time.Time{}, true},
 }
 
 func TestParseString(t *testing.T) {

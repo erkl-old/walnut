@@ -139,6 +139,6 @@ func hasPrefix(s, prefix string) bool {
 	return len(s) >= len(prefix) && s[0:len(prefix)] == prefix
 }
 
-func parseTime(input string) (*time.Time, bool) {
-	return nil, false
+func parseTime(input string) (time.Time, bool) {
+	return time.Time{}, true
 }
