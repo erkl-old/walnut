@@ -155,7 +155,7 @@ var durationTests = []struct {
 
 var timeTests = []struct {
 	in  string
-	out *time.Time
+	out time.Time
 	ok  bool
 }{
 	// @todo: tests go here
@@ -255,14 +255,7 @@ func TestParseTime(t *testing.T) {
 			continue
 		}
 
-		if out == nil {
-			if test.out != nil {
-				fail("returned nil")
-			}
-			continue
-		}
-
-		if !out.Equal(*test.out) {
+		if !out.Equal(test.out) {
 			fail("%s != %s", out.String(), test.out.String())
 		}
 	}
@@ -278,13 +271,10 @@ func setup(t *testing.T, signature string, input interface{}) failFunc {
 	}
 }
 
-// Convenience function for creating a `time.Time` struct of a certain value,
-// then returning a pointer to it.
-func moment(value string) *time.Time {
-	t, err := time.Parse("2006-01-02 15:04:05 -07:00", value)
-	if err != nil {
-		panic(err)
-	}
+// Reduced version of `time.Date`.
+func date(y, m, d, H, M, S, ms int) time.Time {
+	month := time.Month(m)
+	nano := ms * int(time.Millisecond)
 
-	return &t
+	return time.Date(y, month, d, H, M, S, nano, time.UTC)
 }
