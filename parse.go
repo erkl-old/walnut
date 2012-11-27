@@ -140,5 +140,10 @@ func hasPrefix(s, prefix string) bool {
 }
 
 func ParseTime(input string) (time.Time, bool) {
-	return time.Time{}, true
+	t, err := time.Parse("2006-01-02 15:04:05 -0700", input)
+	if err != nil {
+		return time.Time{}, false
+	}
+
+	return t, true
 }

@@ -158,10 +158,17 @@ var timeTests = []struct {
 	out time.Time
 	ok  bool
 }{
-	// @todo: tests go here
-	{"1970-01-01 00:00:00 +00:00", time.Time{}, true},
+	// basic
+	{"1970-01-01 00:00:00 +0000", date(1970, 1, 1, 0, 0, 0, 0), true},
+	{"2001-02-03 04:05:06 +0000", date(2001, 2, 3, 4, 5, 6, 0), true},
+	{"1997-08-28 15:30:27.123 +0000", date(1997, 8, 28, 15, 30, 27, 123), true},
+	{"1997-08-28 14:07:27 -0123", date(1997, 8, 28, 15, 30, 27, 0), true},
 
-	{"1970-01-01  00:00:00 +00:00", time.Time{}, true},
+	// invalid
+	{"1970-02-48 00:00:00 +0000", time.Time{}, false},
+	{"1970-02-48 00:00:00 +0000", time.Time{}, false},
+	{"70-01-01 00:00:00", time.Time{}, false},
+	{"1970-01-01 00:00:00 UTC", time.Time{}, false},
 }
 
 func TestParseString(t *testing.T) {
