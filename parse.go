@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-func parseString(input string) (string, bool) {
+func ParseString(input string) (string, bool) {
 	return "", false
 }
 
-func parseInt(input string) (int64, bool) {
+func ParseInt(input string) (int64, bool) {
 	value, err := strconv.ParseInt(input, 0, 64)
 	if err != nil {
 		return 0, false
@@ -18,7 +18,7 @@ func parseInt(input string) (int64, bool) {
 	return value, true
 }
 
-func parseBool(input string) (bool, bool) {
+func ParseBool(input string) (bool, bool) {
 	switch input {
 	case "true", "yes", "on":
 		return true, true
@@ -29,7 +29,7 @@ func parseBool(input string) (bool, bool) {
 	return false, false
 }
 
-func parseDuration(input string) (time.Duration, bool) {
+func ParseDuration(input string) (time.Duration, bool) {
 	// don't bother parsing an empty string
 	if input == "" {
 		return 0, false
@@ -139,6 +139,6 @@ func hasPrefix(s, prefix string) bool {
 	return len(s) >= len(prefix) && s[0:len(prefix)] == prefix
 }
 
-func parseTime(input string) (time.Time, bool) {
+func ParseTime(input string) (time.Time, bool) {
 	return time.Time{}, true
 }

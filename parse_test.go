@@ -166,8 +166,8 @@ var timeTests = []struct {
 
 func TestParseString(t *testing.T) {
 	for _, test := range stringTests {
-		fail := setup(t, "parseString", test.in)
-		out, ok := parseString(test.in)
+		fail := setup(t, "ParseString", test.in)
+		out, ok := ParseString(test.in)
 
 		if ok != test.ok {
 			if test.ok {
@@ -186,8 +186,8 @@ func TestParseString(t *testing.T) {
 
 func TestParseInt(t *testing.T) {
 	for _, test := range intTests {
-		fail := setup(t, "parseInt", test.in)
-		out, ok := parseInt(test.in)
+		fail := setup(t, "ParseInt", test.in)
+		out, ok := ParseInt(test.in)
 
 		if ok != test.ok {
 			if test.ok {
@@ -206,8 +206,8 @@ func TestParseInt(t *testing.T) {
 
 func TestParseBool(t *testing.T) {
 	for _, test := range boolTests {
-		fail := setup(t, "parseBool", test.in)
-		out, ok := parseBool(test.in)
+		fail := setup(t, "ParseBool", test.in)
+		out, ok := ParseBool(test.in)
 
 		if ok != test.ok {
 			if test.ok {
@@ -226,8 +226,8 @@ func TestParseBool(t *testing.T) {
 
 func TestParseDuration(t *testing.T) {
 	for _, test := range durationTests {
-		fail := setup(t, "parseDuration", test.in)
-		out, ok := parseDuration(test.in)
+		fail := setup(t, "ParseDuration", test.in)
+		out, ok := ParseDuration(test.in)
 
 		if ok != test.ok {
 			if test.ok {
@@ -246,8 +246,8 @@ func TestParseDuration(t *testing.T) {
 
 func TestParseTime(t *testing.T) {
 	for _, test := range timeTests {
-		fail := setup(t, "parseTime", test.in)
-		out, ok := parseTime(test.in)
+		fail := setup(t, "ParseTime", test.in)
+		out, ok := ParseTime(test.in)
 
 		if ok != test.ok {
 			if test.ok {
