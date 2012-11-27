@@ -188,7 +188,6 @@ var timeTests = []struct {
 
 	// invalid
 	{"1970-02-48 00:00:00 +0000", time.Time{}, false},
-	{"1970-02-48 00:00:00 +0000", time.Time{}, false},
 	{"70-01-01 00:00:00", time.Time{}, false},
 	{"1970-01-01 00:00:00 UTC", time.Time{}, false},
 }
