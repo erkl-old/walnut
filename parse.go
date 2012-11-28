@@ -44,12 +44,6 @@ func ParseDuration(input string) (time.Duration, bool) {
 		return 0, false
 	}
 
-	// special case; forcing a unit after a zero duration
-	// wouldn't make sense
-	if input == "0" {
-		return 0, true
-	}
-
 	total := time.Duration(0)
 	var lastUnit time.Duration
 

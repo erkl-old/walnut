@@ -121,7 +121,6 @@ var durationTests = []struct {
 	ok  bool
 }{
 	// simple formats
-	{"0", 0, true},
 	{"0s", 0, true},
 	{"5s", 5 * time.Second, true},
 	{"37s", 37 * time.Second, true},
