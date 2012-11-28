@@ -5,6 +5,40 @@ import (
 	"time"
 )
 
+const (
+	TypeString = iota // = 0
+	TypeInt
+	TypeBool
+	TypeDuration
+	TypeTime
+
+	TypeNone = -1
+)
+
+func DetectType(input string) int {
+	if _, ok := ParseString(input); ok {
+		return TypeString
+	}
+
+	if _, ok := ParseInt(input); ok {
+		return TypeInt
+	}
+
+	if _, ok := ParseBool(input); ok {
+		return TypeBool
+	}
+
+	if _, ok := ParseDuration(input); ok {
+		return TypeDuration
+	}
+
+	if _, ok := ParseTime(input); ok {
+		return TypeTime
+	}
+
+	return TypeNone
+}
+
 func ParseString(input string) (string, bool) {
 	if input == "" || input[0] != '"' {
 		return "", false
