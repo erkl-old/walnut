@@ -291,6 +291,51 @@ func TestParseTime(t *testing.T) {
 	}
 }
 
+type typeTest struct {
+	in    string
+	match bool
+	kind  int
+}
+
+func TestDetectType(t *testing.T) {
+	tests := make([]typeTest, 0)
+
+	// create a set of type detection tests using all
+	// tests for value parsing
+	for _, d := range stringTests {
+		tests = append(tests, typeTest{d.in, d.ok, TypeString})
+	}
+
+	for _, d := range intTests {
+		tests = append(tests, typeTest{d.in, d.ok, TypeInt})
+	}
+
+	for _, d := range boolTests {
+		tests = append(tests, typeTest{d.in, d.ok, TypeBool})
+	}
+
+	for _, d := range durationTests {
+		tests = append(tests, typeTest{d.in, d.ok, TypeDuration})
+	}
+
+	for _, d := range timeTests {
+		tests = append(tests, typeTest{d.in, d.ok, TypeTime})
+	}
+
+	// iterate through
+	for _, test := range tests {
+		fail := setup(t, "DetectType", test.in)
+		d := DetectType(test.in)
+
+		if test.match && d != test.kind {
+			fail("%v != %v", d, test.kind)
+		}
+		if !test.match && d == test.kind {
+			fail("%v == %v", d, test.kind)
+		}
+	}
+}
+
 // Simplify failure reporting.
 type failFunc func(format string, values ...interface{})
 
