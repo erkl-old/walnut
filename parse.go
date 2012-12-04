@@ -133,8 +133,7 @@ func indentation(input string) string {
 
 // Given a list of previous indentation levels, finds the provided indentation
 // level's depth value. A depth of 0 represents the lowest possible level of
-// indentation.
-// Returns -1 on errors caused by illegal indentation.
+// indentation. Returns -1 on errors caused by illegal indentation.
 func depth(parents []string, current string) int {
 	if current == "" {
 		return 0

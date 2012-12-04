@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Reads ASCII digits from the beginning of a string until a) the string
+// Reads ASCII digits from the beginning of a string until the string
 // ends, a non-digit character is encountered, or when an integer overflow
 // occurs. Also returns the number of characters consumed if successful.
 func digits(input string) (int64, int) {
