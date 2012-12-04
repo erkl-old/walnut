@@ -8,7 +8,7 @@ import (
 const whitespace = " \t\n\v\f\r\u0085\u00A0"
 
 // Outlines a "key = value" assignment.
-type assignment struct {
+type definition struct {
 	key, value string
 	line       int
 }
@@ -26,9 +26,9 @@ func (e indentError) Error() string {
 
 // Generates a map of resolved keys and raw string values from a byte slice.
 // Returns an error if the configuration source is not properly indented.
-func parse(buf []byte) ([]assignment, *indentError) {
+func parse(buf []byte) ([]definition, *indentError) {
 	lines := strings.Split(string(buf), "\n")
-	raw := make([]assignment, 0)
+	raw := make([]definition, 0)
 
 	// collapse lines without any content
 	for i, line := range lines {
@@ -61,7 +61,7 @@ func parse(buf []byte) ([]assignment, *indentError) {
 
 		// if the line contains an assignment, record the the value
 		if strings.ContainsRune(line, '=') {
-			raw = append(raw, assignment{
+			raw = append(raw, definition{
 				key:   strings.Join(append(parents, k), "."),
 				value: value(line),
 				line:  n,
