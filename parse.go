@@ -50,7 +50,7 @@ func parse(buf []byte) ([]definition, *indentError) {
 		// check for invalid indentation
 		if d == -1 {
 			e := fmt.Sprintf("invalid indentation on line %d", n)
-			return nil, &indentError{e, n}
+			return nil, &indentError{e, n + 1}
 		}
 
 		// trim now redundant levels
@@ -64,7 +64,7 @@ func parse(buf []byte) ([]definition, *indentError) {
 			raw = append(raw, definition{
 				key:   strings.Join(append(parents, k), "."),
 				value: value(line),
-				line:  n,
+				line:  n + 1,
 			})
 
 			continue
