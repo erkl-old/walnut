@@ -5,7 +5,7 @@ import (
 )
 
 // test suite for ParseBool
-var bools = []struct {
+var boolTests = []struct {
 	in string
 	b  bool
 	ok bool
@@ -29,7 +29,7 @@ var bools = []struct {
 func TestParseBool(test *testing.T) {
 	h := "ParseBool(%#v) ->"
 
-	for _, t := range bools {
+	for _, t := range boolTests {
 		b, ok := ParseBool(t.in)
 
 		switch {
@@ -42,7 +42,7 @@ func TestParseBool(test *testing.T) {
 }
 
 // test suite for ParseFloat
-var floats = []struct {
+var floatTests = []struct {
 	in string
 	f  float64
 	ok bool
@@ -52,7 +52,7 @@ var floats = []struct {
 	{"987654321", 987654321, true},
 	{"123456700", 1.234567e+08, true},
 
-	// floats
+	// decimals
 	{"1.3", 1.3, true},
 	{"100.0", 100, true},
 	{"38.002", 38.002, true},
@@ -86,7 +86,7 @@ var floats = []struct {
 func TestParseFloat(test *testing.T) {
 	h := "ParseFloat(%#v) ->"
 
-	for _, t := range floats {
+	for _, t := range floatTests {
 		f, ok := ParseFloat(t.in)
 
 		switch {
