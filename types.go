@@ -56,6 +56,22 @@ func ParseFloat(input string) (float64, bool) {
 	return value, true
 }
 
+// Attempts to parse the input string as a quoted string.
+func ParseString(input string) (string, bool) {
+	// only allow double-quoted strings
+	if input == "" || input[0] != '"' {
+		return "", false
+	}
+
+	// let strconv to do the work for us
+	value, err := strconv.Unquote(input)
+	if err != nil {
+		return "", false
+	}
+
+	return value, true
+}
+
 // Reads ASCII digits from the beginning of a string until either the string
 // ends, a non-digit character is encountered, or when an integer overflow
 // occurs. Also returns the number of characters consumed if successful.

@@ -97,3 +97,49 @@ func TestParseFloat(test *testing.T) {
 		}
 	}
 }
+
+// test suite for ParseString
+var stringTests = []struct {
+	in string
+	s  string
+	ok bool
+}{
+	// valid
+	{`""`, "", true},
+	{`"hello"`, "hello", true},
+	{`"日本人"`, "日本人", true},
+	{`"a\nb"`, "a\nb", true},
+	{`"\u00FF"`, "ÿ", true},
+	{`"\xFF"`, "\xFF", true},
+	{`"\U00010111"`, "\U00010111", true},
+	{`"\U0001011111"`, "\U0001011111", true},
+	{`"'"`, "'", true},
+	{`"\""`, "\"", true},
+
+	// invalid
+	{``, "", false},
+	{`"lone`, "", false},
+	{`hello`, "", false},
+	{`"mismatch'`, "", false},
+	{`"\"`, "", false},
+	{`"\1"`, "", false},
+	{`"\19"`, "", false},
+	{`"\129"`, "", false},
+	{"`a`", "", false},
+	{"'b'", "", false},
+}
+
+func TestParseString(test *testing.T) {
+	h := "ParseString(%#v) ->"
+
+	for _, t := range stringTests {
+		s, ok := ParseString(t.in)
+
+		switch {
+		case ok != t.ok:
+			test.Errorf(h+" ok != %#v", t.in, t.ok)
+		case s != t.s:
+			test.Errorf(h+" %#v, want %#v", t.in, s, t.s)
+		}
+	}
+}
