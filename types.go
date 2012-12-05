@@ -72,6 +72,16 @@ func ParseString(input string) (string, bool) {
 	return value, true
 }
 
+// Attempts to convert the input string to a timestamp.
+func ParseTime(input string) (time.Time, bool) {
+	value, err := time.Parse("2006-01-02 15:04:05 -0700", input)
+	if err != nil {
+		return time.Time{}, false
+	}
+
+	return value, true
+}
+
 // Attempts to convert an input string to a duration.
 func ParseDuration(input string) (time.Duration, bool) {
 	// don't bother parsing an empty string

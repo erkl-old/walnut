@@ -145,6 +145,43 @@ func TestParseString(test *testing.T) {
 	}
 }
 
+// test suite for ParseTime
+var timeTests = []struct {
+	in string
+	ok bool
+}{
+	// basic
+	{"1970-01-01 00:00:00 +0000", true},
+	{"2001-02-03 04:05:06 +0000", true},
+	{"1997-08-28 15:30:27.123 +0000", true},
+	{"1997-08-28 14:07:27 -0123", true},
+
+	// invalid
+	{"", false},
+	{"01:02:03", false},
+	{"1970-01-01", false},
+	{"1970-01-01 00:00:00", false},
+	{"1970-02-48 00:00:00 +0000", false},
+	{"70-01-01 00:00:00", false},
+	{"1970-01-01 00:00:00 UTC", false},
+}
+
+func TestParseTime(test *testing.T) {
+	h := "ParseTime(%#v) ->"
+
+	for _, t := range timeTests {
+		e, _ := time.Parse("2006-01-02 15:04:05 -0700", t.in)
+		a, ok := ParseTime(t.in)
+
+		switch {
+		case ok != t.ok:
+			test.Errorf(h+" ok != %#v", t.in, t.ok)
+		case !a.Equal(e):
+			test.Errorf(h+" %s, want %s", t.in, a.String(), e.String())
+		}
+	}
+}
+
 // test suite for ParseDuration
 var durationTests = []struct {
 	in string
