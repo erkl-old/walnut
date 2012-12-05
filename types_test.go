@@ -4,6 +4,43 @@ import (
 	"testing"
 )
 
+// test suite for ParseBool
+var bools = []struct {
+	in string
+	b  bool
+	ok bool
+}{
+	// truthy
+	{"true", true, true},
+	{"yes", true, true},
+	{"on", true, true},
+
+	// falsy
+	{"false", false, true},
+	{"no", false, true},
+	{"off", false, true},
+
+	// invalid
+	{"", false, false},
+	{"x", false, false},
+	{"1", false, false},
+}
+
+func TestParseBool(test *testing.T) {
+	h := "ParseBool(%#v) ->"
+
+	for _, t := range bools {
+		b, ok := ParseBool(t.in)
+
+		switch {
+		case ok != t.ok:
+			test.Errorf(h+" ok != %#v", t.in, t.ok)
+		case b != t.b:
+			test.Errorf(h+" %#v, want %#v", t.in, b, t.b)
+		}
+	}
+}
+
 // test suite for ParseFloat
 var floats = []struct {
 	in string

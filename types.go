@@ -6,6 +6,18 @@ import (
 	"time"
 )
 
+// Attempts to parse the input string as a boolean value.
+func ParseBool(input string) (bool, bool) {
+	switch input {
+	case "true", "yes", "on":
+		return true, true
+	case "false", "no", "off":
+		return false, true
+	}
+
+	return false, false
+}
+
 // Attempts to parse the input string as a floating point (or integral)
 // number.
 func ParseFloat(input string) (float64, bool) {
