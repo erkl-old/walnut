@@ -72,6 +72,56 @@ func ParseString(input string) (string, bool) {
 	return value, true
 }
 
+// Attempts to convert an input string to a duration.
+func ParseDuration(input string) (time.Duration, bool) {
+	// don't bother parsing an empty string
+	if input == "" {
+		return 0, false
+	}
+
+	var total, previous time.Duration
+
+	for {
+		// consume leading whitespace
+		for input != "" && input[0] == ' ' {
+			input = input[1:]
+		}
+
+		// stop if there's nothing left to parse
+		if input == "" {
+			break
+		}
+
+		// parse the number and the unit...
+		num, digits := digits(input)
+		unit, chars := unit(input[digits:])
+
+		// ...and fail if either of them are missing
+		if digits == 0 || chars == 0 {
+			return 0, false
+		}
+
+		// make sure the components are ordered by unit, in
+		// descending order
+		if unit >= previous && previous != 0 {
+			return 0, false
+		}
+
+		// test for integer overflows
+		next := total + (time.Duration(num) * unit)
+		if next < total {
+			return 0, false
+		}
+
+		total = next
+
+		previous = unit
+		input = input[digits+chars:]
+	}
+
+	return total, true
+}
+
 // Reads ASCII digits from the beginning of a string until either the string
 // ends, a non-digit character is encountered, or when an integer overflow
 // occurs. Also returns the number of characters consumed if successful.
@@ -109,7 +159,7 @@ func unit(s string) (time.Duration, int) {
 	case strings.HasPrefix(s, "μs"):
 		return time.Microsecond, 3
 	case strings.HasPrefix(s, "µs"):
-		return time.Microsecond, 2
+		return time.Microsecond, 3
 	case strings.HasPrefix(s, "us"):
 		return time.Microsecond, 2
 	case strings.HasPrefix(s, "ms"):

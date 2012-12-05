@@ -2,6 +2,7 @@ package walnut
 
 import (
 	"testing"
+	"time"
 )
 
 // test suite for ParseBool
@@ -140,6 +141,81 @@ func TestParseString(test *testing.T) {
 			test.Errorf(h+" ok != %#v", t.in, t.ok)
 		case s != t.s:
 			test.Errorf(h+" %#v, want %#v", t.in, s, t.s)
+		}
+	}
+}
+
+// test suite for ParseDuration
+var durationTests = []struct {
+	in string
+	d  time.Duration
+	ok bool
+}{
+	// simple formats
+	{"0s", 0, true},
+	{"5s", 5 * time.Second, true},
+	{"37s", 37 * time.Second, true},
+	{"010s", 10 * time.Second, true},
+	{"3d", 3 * 24 * time.Hour, true},
+
+	// all units
+	{"10ns", 10 * time.Nanosecond, true},
+	{"10µs", 10 * time.Microsecond, true},
+	{"10μs", 10 * time.Microsecond, true},
+	{"10us", 10 * time.Microsecond, true},
+	{"10ms", 10 * time.Millisecond, true},
+	{"10s", 10 * time.Second, true},
+	{"10m", 10 * time.Minute, true},
+	{"10h", 10 * time.Hour, true},
+	{"10d", 10 * 24 * time.Hour, true},
+	{"10w", 10 * 7 * 24 * time.Hour, true},
+
+	// mixed units
+	{"1h1m1s", time.Hour + time.Minute + time.Second, true},
+	{"4h30m", 4*time.Hour + 30*time.Minute, true},
+	{"1s500ms", time.Second + 500*time.Millisecond, true},
+	{"1w1d24h1440m", 10 * 24 * time.Hour, true},
+
+	// allow (ignore) spaces between components
+	{"1h 1m1s", time.Hour + time.Minute + time.Second, true},
+	{"4h 30m", 4*time.Hour + 30*time.Minute, true},
+	{"1s    500ms", time.Second + 500*time.Millisecond, true},
+	{"1w 1d 24h 1440m", 10 * 24 * time.Hour, true},
+
+	// disallow signs and decimal values
+	{"-3h", 0, false},
+	{"+5m", 0, false},
+	{"300.5h", 0, false},
+	{"1h 1m 1.3s", 0, false},
+	{"10w -3d", 0, false},
+	{"1.2d20m", 0, false},
+
+	// units out of order
+	{"1s2m", 0, false},
+	{"1200ms 3s", 0, false},
+	{"4h 5d 6w 7m", 0, false},
+
+	// other invalid formats
+	{"", 0, false},
+	{"1sm", 0, false},
+	{"2 m 3 s", 0, false},
+	{"4 d5 h", 0, false},
+	{"100", 0, false},
+	{"1d 200", 0, false},
+	{"3 4 5ms", 0, false},
+}
+
+func TestParseDuration(test *testing.T) {
+	h := "ParseDuration(%#v) ->"
+
+	for _, t := range durationTests {
+		d, ok := ParseDuration(t.in)
+
+		switch {
+		case ok != t.ok:
+			test.Errorf(h+" ok != %#v", t.in, t.ok)
+		case d != t.d:
+			test.Errorf(h+" %#v, want %#v", t.in, d, t.d)
 		}
 	}
 }
