@@ -92,11 +92,6 @@ func ParseDuration(input string) (time.Duration, bool) {
 	var total, previous time.Duration
 
 	for {
-		// consume leading whitespace
-		for input != "" && input[0] == ' ' {
-			input = input[1:]
-		}
-
 		// stop if there's nothing left to parse
 		if input == "" {
 			break
@@ -124,9 +119,13 @@ func ParseDuration(input string) (time.Duration, bool) {
 		}
 
 		total = next
-
 		previous = unit
 		input = input[digits+chars:]
+
+		// consume the optional space between components
+		if len(input) > 1 && input[0] == ' ' {
+			input = input[1:]
+		}
 	}
 
 	return total, true

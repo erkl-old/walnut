@@ -216,7 +216,7 @@ var durationTests = []struct {
 	// allow (ignore) spaces between components
 	{"1h 1m1s", time.Hour + time.Minute + time.Second, true},
 	{"4h 30m", 4*time.Hour + 30*time.Minute, true},
-	{"1s    500ms", time.Second + 500*time.Millisecond, true},
+	{"1s 500ms", time.Second + 500*time.Millisecond, true},
 	{"1w 1d 24h 1440m", 10 * 24 * time.Hour, true},
 
 	// disallow signs and decimal values
@@ -235,6 +235,8 @@ var durationTests = []struct {
 	// other invalid formats
 	{"", 0, false},
 	{"1sm", 0, false},
+	{" 1h 1m1s", 0, false},
+	{"4h  30m", 0, false},
 	{"2 m 3 s", 0, false},
 	{"4 d5 h", 0, false},
 	{"100", 0, false},
