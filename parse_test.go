@@ -33,7 +33,7 @@ var valid = []struct {
 	}},
 }
 
-func TestValidConfigurations(test *testing.T) {
+func Test_ValidConfigurations(test *testing.T) {
 	h := "parseConfig(%#v) ->"
 
 	for _, t := range valid {
@@ -73,7 +73,7 @@ var invalid = []struct {
 	{"i\n\t j=7\n  k=8", 3},
 }
 
-func TestInvalidConfigurations(test *testing.T) {
+func Test_InvalidConfigurations(test *testing.T) {
 	h := "parseConfig(%#v) ->"
 
 	for _, t := range invalid {
