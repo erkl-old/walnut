@@ -10,6 +10,9 @@ var parseTests = []struct {
 	in string
 	d  []definition
 }{
+	{"", []definition{}},
+	{"\n\t\t\n\n ", []definition{}},
+	{"#abc", []definition{}},
 	{"a=1", []definition{
 		{"a", "1", 1},
 	}},
@@ -23,6 +26,10 @@ var parseTests = []struct {
 	{"foo\n\tbar=5\n\tbaz=6", []definition{
 		{"foo.bar", "5", 2},
 		{"foo.baz", "6", 3},
+	}},
+	{"#\nabc\n def=7\n #\n ghi=8", []definition{
+		{"abc.def", "7", 3},
+		{"abc.ghi", "8", 5},
 	}},
 }
 
