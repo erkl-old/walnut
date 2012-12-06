@@ -7,7 +7,7 @@ import (
 const whitespace = " \t\n\v\f\r\u0085\u00A0"
 
 // Outlines a "key = value" assignment.
-type definition struct {
+type configDefinition struct {
 	key, value string
 	line       int
 }
@@ -15,9 +15,9 @@ type definition struct {
 // Generates a map of resolved keys and raw string values from a byte slice.
 // If the second argument is not 0, an indentation error was detected on
 // that line (1 being the first line).
-func parse(buf []byte) ([]definition, int) {
+func parseConfig(buf []byte) ([]configDefinition, int) {
 	lines := strings.Split(string(buf), "\n")
-	raw := make([]definition, 0)
+	raw := make([]configDefinition, 0)
 
 	// collapse lines without any content
 	for i, line := range lines {
@@ -33,9 +33,9 @@ func parse(buf []byte) ([]definition, int) {
 			continue
 		}
 
-		k := key(line)
-		i := indentation(line)
-		d := depth(indents, i)
+		k := selectKey(line)
+		i := selectIndentation(line)
+		d := calculateDepth(indents, i)
 
 		// check for invalid indentation
 		if d == -1 || (d == len(indents) && !first) {
@@ -54,9 +54,9 @@ func parse(buf []byte) ([]definition, int) {
 
 		// if the line contains an assignment, record the value
 		if strings.ContainsRune(line, '=') {
-			raw = append(raw, definition{
+			raw = append(raw, configDefinition{
 				key:   strings.Join(parents, "."),
-				value: value(line),
+				value: selectValue(line),
 				line:  n + 1,
 			})
 
@@ -93,7 +93,7 @@ func collapse(input string) string {
 }
 
 // Returns the "key" component from a "key = value" string.
-func key(input string) string {
+func selectKey(input string) string {
 	if eq := strings.IndexRune(input, '='); eq != -1 {
 		input = input[:eq]
 	}
@@ -102,7 +102,7 @@ func key(input string) string {
 }
 
 // Returns the "value" component from a "key = value" string.
-func value(input string) string {
+func selectValue(input string) string {
 	if eq := strings.IndexRune(input, '='); eq != -1 {
 		input = input[eq+1:]
 	}
@@ -111,7 +111,7 @@ func value(input string) string {
 }
 
 // Returns the string's whitespace prefix.
-func indentation(input string) string {
+func selectIndentation(input string) string {
 	end := strings.IndexFunc(input, func(r rune) bool {
 		return strings.IndexRune(whitespace, r) == -1
 	})
@@ -126,7 +126,7 @@ func indentation(input string) string {
 // Given a list of previous indentation levels, finds the provided indentation
 // level's depth value. A depth of 0 represents the lowest possible level of
 // indentation. Returns -1 on errors caused by illegal indentation.
-func depth(parents []string, current string) int {
+func calculateDepth(parents []string, current string) int {
 	if current == "" {
 		return 0
 	}

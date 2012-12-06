@@ -8,36 +8,36 @@ import (
 // a specific set of definitions
 var valid = []struct {
 	in string
-	d  []definition
+	d  []configDefinition
 }{
-	{"", []definition{}},
-	{"\n\t\t\n\n ", []definition{}},
-	{"#abc", []definition{}},
-	{"a=1", []definition{
+	{"", []configDefinition{}},
+	{"\n\t\t\n\n ", []configDefinition{}},
+	{"#abc", []configDefinition{}},
+	{"a=1", []configDefinition{
 		{"a", "1", 1},
 	}},
-	{"b=2\nc=3", []definition{
+	{"b=2\nc=3", []configDefinition{
 		{"b", "2", 1},
 		{"c", "3", 2},
 	}},
-	{"d\n e=4", []definition{
+	{"d\n e=4", []configDefinition{
 		{"d.e", "4", 2},
 	}},
-	{"foo\n\tbar=5\n\tbaz=6", []definition{
+	{"foo\n\tbar=5\n\tbaz=6", []configDefinition{
 		{"foo.bar", "5", 2},
 		{"foo.baz", "6", 3},
 	}},
-	{"#\nabc\n def=7\n #\n ghi=8", []definition{
+	{"#\nabc\n def=7\n #\n ghi=8", []configDefinition{
 		{"abc.def", "7", 3},
 		{"abc.ghi", "8", 5},
 	}},
 }
 
 func TestValidConfigurations(test *testing.T) {
-	h := "parse(%#v) ->"
+	h := "parseConfig(%#v) ->"
 
 	for _, t := range valid {
-		d, line := parse([]byte(t.in))
+		d, line := parseConfig([]byte(t.in))
 
 		if line != 0 {
 			test.Errorf(h+" line = %d, want 0", t.in, line)
@@ -61,7 +61,7 @@ func TestValidConfigurations(test *testing.T) {
 	}
 }
 
-// configuration input which should complain about *
+// configuration input which should trigger an error on a specific line
 var invalid = []struct {
 	in string
 	l  int
@@ -74,10 +74,10 @@ var invalid = []struct {
 }
 
 func TestInvalidConfigurations(test *testing.T) {
-	h := "parse(%#v) ->"
+	h := "parseConfig(%#v) ->"
 
 	for _, t := range invalid {
-		_, line := parse([]byte(t.in))
+		_, line := parseConfig([]byte(t.in))
 		if line != t.l {
 			test.Errorf(h+" %d != %d", t.in, line, t.l)
 		}
