@@ -6,7 +6,7 @@ import (
 
 // configuration input which should parse successfully, returning
 // a specific set of definitions
-var parseTests = []struct {
+var valid = []struct {
 	in string
 	d  []definition
 }{
@@ -33,14 +33,14 @@ var parseTests = []struct {
 	}},
 }
 
-func TestValidConfigParsing(test *testing.T) {
+func TestValidConfigurations(test *testing.T) {
 	h := "parse(%#v) ->"
 
-	for _, t := range parseTests {
-		d, err := parse([]byte(t.in))
+	for _, t := range valid {
+		d, line := parse([]byte(t.in))
 
-		if err != nil {
-			test.Errorf(h+" error: %#v", t.in, err.Error())
+		if line != 0 {
+			test.Errorf(h+" line = %d, want 0", t.in, line)
 			continue
 		}
 
@@ -57,6 +57,29 @@ func TestValidConfigParsing(test *testing.T) {
 			if !ok {
 				test.Errorf(h+" %v, want %v", t.in, d, t.d)
 			}
+		}
+	}
+}
+
+// configuration input which should complain about *
+var invalid = []struct {
+	in string
+	l  int
+}{
+	{" foo=3", 1},
+	{"a=1\n b=2", 2},
+	{"c\n d=3\n  e=4", 3},
+	{"f\n  g=5\n h=6", 3},
+	{"i\n\t j=7\n  k=8", 3},
+}
+
+func TestInvalidConfigurations(test *testing.T) {
+	h := "parse(%#v) ->"
+
+	for _, t := range invalid {
+		_, line := parse([]byte(t.in))
+		if line != t.l {
+			test.Errorf(h+" %d != %d", t.in, line, t.l)
 		}
 	}
 }
