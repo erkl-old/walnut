@@ -33,13 +33,16 @@ func parseConfig(buf []byte) ([]configDefinition, int) {
 			continue
 		}
 
+		// line numbers should be 1-indexed
+		n++
+
 		k := selectKey(line)
 		i := selectIndentation(line)
 		d := calculateDepth(indents, i)
 
 		// check for invalid indentation
 		if d == -1 || (d == len(indents) && !first) {
-			return nil, n + 1
+			return nil, n
 		}
 
 		// trim now redundant levels
@@ -57,7 +60,7 @@ func parseConfig(buf []byte) ([]configDefinition, int) {
 			raw = append(raw, configDefinition{
 				key:   strings.Join(parents, "."),
 				value: selectValue(line),
-				line:  n + 1,
+				line:  n,
 			})
 
 			first = false
