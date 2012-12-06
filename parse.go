@@ -1,7 +1,6 @@
 package walnut
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -13,20 +12,10 @@ type definition struct {
 	line       int
 }
 
-// Provides information about an indentation syntax error.
-type indentError struct {
-	error string
-	line  int
-}
-
-// Returns a description of the error.
-func (e indentError) Error() string {
-	return e.error
-}
-
 // Generates a map of resolved keys and raw string values from a byte slice.
-// Returns an error if the configuration source is not properly indented.
-func parse(buf []byte) ([]definition, *indentError) {
+// If the second argument is not 0, an indentation error was detected on
+// that line (1 being the first line).
+func parse(buf []byte) ([]definition, int) {
 	lines := strings.Split(string(buf), "\n")
 	raw := make([]definition, 0)
 
@@ -37,6 +26,7 @@ func parse(buf []byte) ([]definition, *indentError) {
 
 	parents := make([]string, 0)
 	indents := make([]string, 0)
+	first := true
 
 	for n, line := range lines {
 		if line == "" {
@@ -48,9 +38,8 @@ func parse(buf []byte) ([]definition, *indentError) {
 		d := depth(indents, i)
 
 		// check for invalid indentation
-		if d == -1 {
-			e := fmt.Sprintf("invalid indentation on line %d", n)
-			return nil, &indentError{e, n + 1}
+		if d == -1 || (d == len(indents) && !first) {
+			return nil, n + 1
 		}
 
 		// trim now redundant levels
@@ -59,23 +48,26 @@ func parse(buf []byte) ([]definition, *indentError) {
 			indents = indents[:d]
 		}
 
-		// if the line contains an assignment, record the the value
+		// push the key and indentation onto their respective stacks
+		parents = append(parents, k)
+		indents = append(indents, i)
+
+		// if the line contains an assignment, record the value
 		if strings.ContainsRune(line, '=') {
 			raw = append(raw, definition{
-				key:   strings.Join(append(parents, k), "."),
+				key:   strings.Join(parents, "."),
 				value: value(line),
 				line:  n + 1,
 			})
 
+			first = false
 			continue
 		}
 
-		// push the key and indentation onto their respective stacks
-		parents = append(parents, k)
-		indents = append(indents, i)
+		first = true
 	}
 
-	return raw, nil
+	return raw, 0
 }
 
 // Trims trailing whitespace or, in the case of comment lines, returns
