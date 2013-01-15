@@ -75,6 +75,8 @@ var floatTests = []struct {
 	{"987654321", 0, false},
 	{"123456700", 0, false},
 	{"", 0, false},
+	{"0.", 0, false},
+	{".1", 0, false},
 	{"1a", 0, false},
 	{"0x30", 0, false},
 	{"1.1.", 0, false},
