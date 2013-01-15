@@ -8,32 +8,32 @@ import (
 // a specific set of definitions
 var valid = []struct {
 	in string
-	d  []configDefinition
+	d  []def
 }{
-	{"", []configDefinition{}},
-	{"\n\t\t\n\n ", []configDefinition{}},
-	{"#abc", []configDefinition{}},
-	{"a=1", []configDefinition{
+	{"", []def{}},
+	{"\n\t\t\n\n ", []def{}},
+	{"#abc", []def{}},
+	{"a=1", []def{
 		{"a", "1", 1},
 	}},
-	{"b=2\nc=3", []configDefinition{
+	{"b=2\nc=3", []def{
 		{"b", "2", 1},
 		{"c", "3", 2},
 	}},
-	{"d\n e=4", []configDefinition{
+	{"d\n e=4", []def{
 		{"d.e", "4", 2},
 	}},
-	{"foo\n\tbar=5\n\tbaz=6", []configDefinition{
+	{"foo\n\tbar=5\n\tbaz=6", []def{
 		{"foo.bar", "5", 2},
 		{"foo.baz", "6", 3},
 	}},
-	{"#\nabc\n def=7\n #\n ghi=8", []configDefinition{
+	{"#\nabc\n def=7\n #\n ghi=8", []def{
 		{"abc.def", "7", 3},
 		{"abc.ghi", "8", 5},
 	}},
 }
 
-func Test_ValidConfigurations(test *testing.T) {
+func TestValidConfigurations(test *testing.T) {
 	h := "parseConfig(%#v) ->"
 
 	for _, t := range valid {
@@ -50,11 +50,7 @@ func Test_ValidConfigurations(test *testing.T) {
 		}
 
 		for i := 0; i < len(t.d); i++ {
-			ok := d[i].key == t.d[i].key &&
-				d[i].value == t.d[i].value &&
-				d[i].line == t.d[i].line
-
-			if !ok {
+			if d[i] != t.d[i] {
 				test.Errorf(h+" %v, want %v", t.in, d, t.d)
 			}
 		}
@@ -73,7 +69,7 @@ var invalid = []struct {
 	{"i\n\t j=7\n  k=8", 3},
 }
 
-func Test_InvalidConfigurations(test *testing.T) {
+func TestInvalidConfigurations(test *testing.T) {
 	h := "parseConfig(%#v) ->"
 
 	for _, t := range invalid {

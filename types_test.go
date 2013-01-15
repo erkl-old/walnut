@@ -27,7 +27,7 @@ var boolTests = []struct {
 	{"1", false, false},
 }
 
-func Test_ParseBool(test *testing.T) {
+func TestParseBool(test *testing.T) {
 	h := "ParseBool(%#v) ->"
 
 	for _, t := range boolTests {
@@ -84,7 +84,7 @@ var floatTests = []struct {
 	{"-0-", 0, false},
 }
 
-func Test_ParseFloat(test *testing.T) {
+func TestParseFloat(test *testing.T) {
 	h := "ParseFloat(%#v) ->"
 
 	for _, t := range floatTests {
@@ -130,7 +130,7 @@ var stringTests = []struct {
 	{"'b'", "", false},
 }
 
-func Test_ParseString(test *testing.T) {
+func TestParseString(test *testing.T) {
 	h := "ParseString(%#v) ->"
 
 	for _, t := range stringTests {
@@ -166,7 +166,7 @@ var timeTests = []struct {
 	{"1970-01-01 00:00:00 UTC", false},
 }
 
-func Test_ParseTime(test *testing.T) {
+func TestParseTime(test *testing.T) {
 	h := "ParseTime(%#v) ->"
 
 	for _, t := range timeTests {
@@ -244,7 +244,7 @@ var durationTests = []struct {
 	{"3 4 5ms", 0, false},
 }
 
-func Test_ParseDuration(test *testing.T) {
+func TestParseDuration(test *testing.T) {
 	h := "ParseDuration(%#v) ->"
 
 	for _, t := range durationTests {

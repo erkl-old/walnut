@@ -6,18 +6,19 @@ import (
 
 const whitespace = " \t\n\v\f\r\u0085\u00A0"
 
-// Outlines a "key = value" assignment.
-type configDefinition struct {
-	key, value string
-	line       int
+// Defines a "key = value" assignment.
+type def struct {
+	key   string
+	value string
+	line  int
 }
 
 // Generates a map of resolved keys and raw string values from a byte slice.
-// If the second argument is not 0, an indentation error was detected on
+// If the second return value != 0, an indentation error was detected on
 // that line (1 being the first line).
-func parseConfig(buf []byte) ([]configDefinition, int) {
+func parseConfig(buf []byte) ([]def, int) {
 	lines := strings.Split(string(buf), "\n")
-	raw := make([]configDefinition, 0)
+	values := make([]def, 0)
 
 	// collapse lines without any content
 	for i, line := range lines {
@@ -57,7 +58,7 @@ func parseConfig(buf []byte) ([]configDefinition, int) {
 
 		// if the line contains an assignment, record the value
 		if strings.ContainsRune(line, '=') {
-			raw = append(raw, configDefinition{
+			values = append(values, def{
 				key:   strings.Join(parents, "."),
 				value: selectValue(line),
 				line:  n,
@@ -70,7 +71,7 @@ func parseConfig(buf []byte) ([]configDefinition, int) {
 		first = true
 	}
 
-	return raw, 0
+	return values, 0
 }
 
 // Trims trailing whitespace or, in the case of comment lines, returns
