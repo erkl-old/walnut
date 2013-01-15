@@ -168,6 +168,8 @@ var stringTests = []struct {
 	{`"\1"`, "", false},
 	{`"\19"`, "", false},
 	{`"\129"`, "", false},
+	{`"a" "b"`, "", false},
+	{`"a""`, "", false},
 	{"`a`", "", false},
 	{"'b'", "", false},
 }
