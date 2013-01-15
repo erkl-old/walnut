@@ -55,6 +55,12 @@ func ParseFloat(input string) (float64, bool) {
 	return value, true
 }
 
+// Attempts to parse the input string as a signed integer.
+func ParseInt(input string) (int64, bool) {
+	value, err := strconv.ParseInt(input, 10, 64)
+	return value, err == nil
+}
+
 // Attempts to parse the input string as a quoted string.
 func ParseString(input string) (string, bool) {
 	// only allow double-quoted strings

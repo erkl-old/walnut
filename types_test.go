@@ -106,6 +106,62 @@ func TestParseFloat(test *testing.T) {
 	}
 }
 
+var intTests = []struct {
+	in string
+	i  int64
+	ok bool
+}{
+	// basic
+	{"0", 0, true},
+	{"1", 1, true},
+	{"12345", 12345, true},
+	{"012345", 12345, true},
+	{"98765432100", 98765432100, true},
+
+	// signs
+	{"-0", 0, true},
+	{"-1", -1, true},
+	{"-12345", -12345, true},
+	{"-012345", -12345, true},
+	{"-98765432100", -98765432100, true},
+
+	// long
+	{"9223372036854775807", 1<<63 - 1, true},
+	{"9223372036854775808", 1<<63 - 1, false},
+	{"9223372036854775809", 1<<63 - 1, false},
+	{"-9223372036854775807", -(1<<63 - 1), true},
+	{"-9223372036854775808", -1 << 63, true},
+	{"-9223372036854775809", -1 << 63, false},
+
+	// invalid
+	{"1.1", 0, false},
+	{"987654321.0", 0, false},
+	{"123456700.", 0, false},
+	{"", 0, false},
+	{".", 0, false},
+	{".1", 0, false},
+	{"1a", 0, false},
+	{"0x30", 0, false},
+	{"1.1.", 0, false},
+	{"+-0", 0, false},
+	{"-0-", 0, false},
+}
+
+func TestParseInt(test *testing.T) {
+	h := "ParseInt(%#v) ->"
+
+	for _, t := range intTests {
+		i, ok := ParseInt(t.in)
+
+		switch {
+		case ok != t.ok:
+			test.Errorf(h+" ok != %#v", t.in, t.ok)
+		case i != t.i:
+			test.Errorf(h+" %#v, want %#v", t.in, i, t.i)
+		}
+	}
+}
+
 // test suite for ParseString
 var stringTests = []struct {
 	in string
