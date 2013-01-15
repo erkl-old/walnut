@@ -38,7 +38,7 @@ func parseConfig(buf []byte) ([]def, int) {
 		n++
 
 		i, k, v := split(line)
-		d := calculateDepth(indents, i)
+		d := depth(indents, i)
 
 		// check for invalid indentation
 		if d == -1 || (d == len(indents) && !first) {
@@ -118,7 +118,7 @@ func split(line string) (i, k, v string) {
 // Given a list of previous indentation levels, finds the provided indentation
 // level's depth value. A depth of 0 represents the lowest possible level of
 // indentation. Returns -1 on errors caused by illegal indentation.
-func calculateDepth(parents []string, current string) int {
+func depth(parents []string, current string) int {
 	if current == "" {
 		return 0
 	}
