@@ -37,8 +37,7 @@ func parseConfig(buf []byte) ([]def, int) {
 		// line numbers should be 1-indexed
 		n++
 
-		k := selectKey(line)
-		i := selectIndentation(line)
+		i, k, v := split(line)
 		d := calculateDepth(indents, i)
 
 		// check for invalid indentation
@@ -60,7 +59,7 @@ func parseConfig(buf []byte) ([]def, int) {
 		if strings.ContainsRune(line, '=') {
 			values = append(values, def{
 				key:   strings.Join(parents, "."),
-				value: selectValue(line),
+				value: v,
 				line:  n,
 			})
 
@@ -96,35 +95,24 @@ func collapse(input string) string {
 	return ""
 }
 
-// Returns the "key" component from a "key = value" string.
-func selectKey(input string) string {
-	if eq := strings.IndexRune(input, '='); eq != -1 {
-		input = input[:eq]
+// Returns the prefix whitespace and "key" and "value" components
+// of a "key = value" line.
+func split(line string) (i, k, v string) {
+	for _, r := range line {
+		if strings.IndexRune(whitespace, r) == -1 {
+			break
+		}
+		i += string(r)
 	}
 
-	return strings.Trim(input, whitespace)
-}
-
-// Returns the "value" component from a "key = value" string.
-func selectValue(input string) string {
-	if eq := strings.IndexRune(input, '='); eq != -1 {
-		input = input[eq+1:]
+	if eq := strings.IndexRune(line, '='); eq != -1 {
+		k = strings.Trim(line[:eq], whitespace)
+		v = strings.Trim(line[eq+1:], whitespace)
+	} else {
+		k = strings.Trim(line, whitespace)
 	}
 
-	return strings.Trim(input, whitespace)
-}
-
-// Returns the string's whitespace prefix.
-func selectIndentation(input string) string {
-	end := strings.IndexFunc(input, func(r rune) bool {
-		return strings.IndexRune(whitespace, r) == -1
-	})
-
-	if end == -1 {
-		return ""
-	}
-
-	return input[:end]
+	return i, k, v
 }
 
 // Given a list of previous indentation levels, finds the provided indentation
