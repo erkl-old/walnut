@@ -5,23 +5,18 @@ import (
 	"time"
 )
 
-// test suite for ParseBool
 var boolTests = []struct {
 	in string
 	b  bool
 	ok bool
 }{
-	// truthy
 	{"true", true, true},
 	{"yes", true, true},
 	{"on", true, true},
-
-	// falsy
 	{"false", false, true},
 	{"no", false, true},
 	{"off", false, true},
 
-	// invalid
 	{"", false, false},
 	{"x", false, false},
 	{"1", false, false},
@@ -42,26 +37,20 @@ func TestParseBool(test *testing.T) {
 	}
 }
 
-// test suite for ParseFloat
 var floatTests = []struct {
 	in string
 	f  float64
 	ok bool
 }{
-	// basic values
 	{"1.3", 1.3, true},
 	{"100.0", 100, true},
 	{"38.002", 38.002, true},
 	{"0.1", 0.1, true},
-
-	// signs
 	{"-0.0", 0, true},
 	{"+1.0", 1, true},
 	{"-2.0", -2, true},
 	{"-0.1", -0.1, true},
 	{"-3.4", -3.4, true},
-
-	// long
 	{"100000000000000000000000.0", 1e+23, true},
 	{"99999999999999974834176.0", 9.999999999999997e+22, true},
 	{"100000000000000000000001.0", 1.0000000000000001e+23, true},
@@ -77,7 +66,6 @@ var floatTests = []struct {
 	{"-100000000000000016777216.0", -1.0000000000000003e+23, true},
 	{"-22.222222222222222", -22.22222222222222, true},
 
-	// invalid
 	{"1", 0, false},
 	{"987654321", 0, false},
 	{"123456700", 0, false},
@@ -111,21 +99,16 @@ var intTests = []struct {
 	i  int64
 	ok bool
 }{
-	// basic
 	{"0", 0, true},
 	{"1", 1, true},
 	{"12345", 12345, true},
 	{"012345", 12345, true},
 	{"98765432100", 98765432100, true},
-
-	// signs
 	{"-0", 0, true},
 	{"-1", -1, true},
 	{"-12345", -12345, true},
 	{"-012345", -12345, true},
 	{"-98765432100", -98765432100, true},
-
-	// long
 	{"9223372036854775807", 1<<63 - 1, true},
 	{"9223372036854775808", 1<<63 - 1, false},
 	{"9223372036854775809", 1<<63 - 1, false},
@@ -133,7 +116,6 @@ var intTests = []struct {
 	{"-9223372036854775808", -1 << 63, true},
 	{"-9223372036854775809", -1 << 63, false},
 
-	// invalid
 	{"1.1", 0, false},
 	{"987654321.0", 0, false},
 	{"123456700.", 0, false},
@@ -162,13 +144,11 @@ func TestParseInt(test *testing.T) {
 	}
 }
 
-// test suite for ParseString
 var stringTests = []struct {
 	in string
 	s  string
 	ok bool
 }{
-	// valid
 	{`""`, "", true},
 	{`"hello"`, "hello", true},
 	{`"日本人"`, "日本人", true},
@@ -180,7 +160,6 @@ var stringTests = []struct {
 	{`"'"`, "'", true},
 	{`"\""`, "\"", true},
 
-	// invalid
 	{``, "", false},
 	{`"lone`, "", false},
 	{`hello`, "", false},
@@ -208,18 +187,15 @@ func TestParseString(test *testing.T) {
 	}
 }
 
-// test suite for ParseTime
 var timeTests = []struct {
 	in string
 	ok bool
 }{
-	// basic
 	{"1970-01-01 00:00:00 +0000", true},
 	{"2001-02-03 04:05:06 +0000", true},
 	{"1997-08-28 15:30:27.123 +0000", true},
 	{"1997-08-28 14:07:27 -0123", true},
 
-	// invalid
 	{"", false},
 	{"01:02:03", false},
 	{"1970-01-01", false},
@@ -245,7 +221,6 @@ func TestParseTime(test *testing.T) {
 	}
 }
 
-// test suite for ParseDuration
 var durationTests = []struct {
 	in string
 	d  time.Duration
