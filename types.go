@@ -19,7 +19,7 @@ func ParseBool(input string) (bool, bool) {
 }
 
 // Attempts to parse the input string as a floating point value.
-func ParseFloat(input string) (float64, bool) {
+func ParseFloat64(input string) (float64, bool) {
 	digits := 0
 	dot := -1
 
@@ -56,7 +56,7 @@ func ParseFloat(input string) (float64, bool) {
 }
 
 // Attempts to parse the input string as a signed integer.
-func ParseInt(input string) (int64, bool) {
+func ParseInt64(input string) (int64, bool) {
 	value, err := strconv.ParseInt(input, 10, 64)
 	return value, err == nil
 }

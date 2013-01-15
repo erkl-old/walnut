@@ -79,11 +79,11 @@ var floatTests = []struct {
 	{"-0-", 0, false},
 }
 
-func TestParseFloat(test *testing.T) {
-	h := "ParseFloat(%#v) ->"
+func TestParseFloat64(test *testing.T) {
+	h := "ParseFloat64(%#v) ->"
 
 	for _, t := range floatTests {
-		f, ok := ParseFloat(t.in)
+		f, ok := ParseFloat64(t.in)
 
 		switch {
 		case ok != t.ok:
@@ -129,11 +129,11 @@ var intTests = []struct {
 	{"-0-", 0, false},
 }
 
-func TestParseInt(test *testing.T) {
-	h := "ParseInt(%#v) ->"
+func TestParseInt64(test *testing.T) {
+	h := "ParseInt64(%#v) ->"
 
 	for _, t := range intTests {
-		i, ok := ParseInt(t.in)
+		i, ok := ParseInt64(t.in)
 
 		switch {
 		case ok != t.ok:
