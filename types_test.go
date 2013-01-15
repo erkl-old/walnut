@@ -42,6 +42,8 @@ var floatTests = []struct {
 	f  float64
 	ok bool
 }{
+	{"0.0", 0, true},
+	{"0000.0000", 0, true},
 	{"1.3", 1.3, true},
 	{"100.0", 100, true},
 	{"38.002", 38.002, true},
@@ -100,6 +102,8 @@ var intTests = []struct {
 	ok bool
 }{
 	{"0", 0, true},
+	{"00000000", 0, true},
+	{"00000001", 1, true},
 	{"1", 1, true},
 	{"12345", 12345, true},
 	{"012345", 12345, true},
