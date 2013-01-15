@@ -18,8 +18,7 @@ func ParseBool(input string) (bool, bool) {
 	return false, false
 }
 
-// Attempts to parse the input string as a floating point (or integral)
-// number.
+// Attempts to parse the input string as a floating point value.
 func ParseFloat(input string) (float64, bool) {
 	digits := 0
 	dot := -1
@@ -40,9 +39,9 @@ func ParseFloat(input string) (float64, bool) {
 		}
 	}
 
-	// make sure we have encountered at least one digit, and that there
-	// are digits after the dot (if it is present)
-	if digits == 0 || dot >= digits {
+	// make sure we have encountered at least one digit and a decimal point,
+	// and that there is at least one digit after the dot
+	if digits == 0 || dot == -1 || dot >= digits {
 		return 0, false
 	}
 
