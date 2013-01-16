@@ -101,3 +101,27 @@ func split(line []byte) (w, k, v []byte) {
 
 	return w, k, v
 }
+
+// Determines a line's indentation depth by looking at its leading whitespace
+// and the leading whitespace of previous lines. Returns an int < 0 when the
+// indentation is invalid.
+func depth(parents [][]byte, current []byte) int {
+	if len(current) == 0 {
+		return 0
+	} else if len(parents) == 0 {
+		// the base indentation level must be empty
+		return -1
+	}
+
+	for i, parent := range parents {
+		if !hasPrefix(current, parent) {
+			return -1
+		}
+		if len(current) == len(parent) {
+			return i
+		}
+	}
+
+	// the current line is further indented than its parent
+	return len(parents)
+}

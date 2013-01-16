@@ -10,6 +10,21 @@ func indexOf(haystack []byte, needle byte) int {
 	return -1
 }
 
+// Returns true if `subject` begins with `prefix`.
+func hasPrefix(subject, prefix []byte) bool {
+	if len(subject) <= len(prefix) {
+		return false
+	}
+
+	for i, b := range prefix {
+		if subject[i] != b {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Cuts a slice of `input` without any leading or trailing whitespace.
 func trim(input []byte) []byte {
 	for l := len(input); l > 0; l-- {
