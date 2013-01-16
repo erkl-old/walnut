@@ -1,7 +1,9 @@
 package walnut
 
 import (
+	"strings"
 	"testing"
+	"testing/iotest"
 )
 
 // configuration input which should parse successfully, returning
@@ -33,14 +35,15 @@ var valid = []struct {
 	}},
 }
 
-func TestValidConfigurations(test *testing.T) {
-	h := "parseConfig(%#v) ->"
+func TestParseValid(test *testing.T) {
+	h := "parse(%#v) ->"
 
 	for _, t := range valid {
-		d, line := parseConfig([]byte(t.in))
+		r := iotest.OneByteReader(strings.NewReader(t.in))
+		d, err := parse(r, make([]byte, 1024))
 
-		if line != 0 {
-			test.Errorf(h+" line = %d, want 0", t.in, line)
+		if err != nil {
+			test.Errorf(h+" err = %v, want nil", t.in, err)
 			continue
 		}
 
@@ -57,25 +60,27 @@ func TestValidConfigurations(test *testing.T) {
 	}
 }
 
-// configuration input which should trigger an error on a specific line
-var invalid = []struct {
-	in string
-	l  int
+// configuration input which should trigger an indentation error
+var indentErrors = []struct {
+	in  string
+	err string
 }{
-	{" foo=3", 1},
-	{"a=1\n b=2", 2},
-	{"c\n d=3\n  e=4", 3},
-	{"f\n  g=5\n h=6", 3},
-	{"i\n\t j=7\n  k=8", 3},
+	{" foo=3", "invalid indentation on line 1"},
+	{"a=1\n b=2", "invalid indentation on line 2"},
+	{"c\n d=3\n  e=4", "invalid indentation on line 3"},
+	{"f\n  g=5\n h=6", "invalid indentation on line 3"},
+	{"i\n\t j=7\n  k=8", "invalid indentation on line 3"},
 }
 
-func TestInvalidConfigurations(test *testing.T) {
-	h := "parseConfig(%#v) ->"
+func TestParseIndentErrors(test *testing.T) {
+	h := "parse(%#v) ->"
 
-	for _, t := range invalid {
-		_, line := parseConfig([]byte(t.in))
-		if line != t.l {
-			test.Errorf(h+" %d != %d", t.in, line, t.l)
+	for _, t := range indentErrors {
+		r := iotest.OneByteReader(strings.NewReader(t.in))
+		_, err := parse(r, make([]byte, 1024))
+
+		if err == nil || err.Error() != t.err {
+			test.Errorf(h+" %q != %q", t.in, err, t.err)
 		}
 	}
 }
