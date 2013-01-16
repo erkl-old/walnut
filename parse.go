@@ -1,12 +1,12 @@
 package walnut
 
 import (
-	"errors"
+	"fmt"
 	"io"
 )
 
-var (
-	ErrLineTooLong = errors.New("line too long")
+const (
+	_ErrTooLong = "line %d too long (buffer overflow thwarted)"
 )
 
 // Defines a "key = value" assignment.
@@ -24,7 +24,7 @@ func readLines(r io.Reader, buf []byte) ([][]byte, error) {
 
 	for {
 		if cont == len(buf) {
-			return nil, ErrLineTooLong
+			return nil, fmt.Errorf(_ErrTooLong, len(lines)+1)
 		}
 
 		n, err := r.Read(buf[cont:])
