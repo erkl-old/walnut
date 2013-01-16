@@ -67,3 +67,37 @@ func push(lines [][]byte, line []byte) [][]byte {
 
 	return append(lines, dup)
 }
+
+// Returns `true` if the line is blank, or is commented out.
+func isEmpty(line []byte) bool {
+	for _, b := range line {
+		if isSpace(b) {
+			continue
+		}
+		if b == '#' {
+			break
+		}
+		return false
+	}
+	return true
+}
+
+// Returns the prefix whitespace and "key" and "value" components
+// of a "key = value" line.
+func split(line []byte) (w, k, v []byte) {
+	for i, b := range line {
+		if !isSpace(b) {
+			break
+		}
+		w = line[:i+1]
+	}
+
+	k = line[len(w):]
+
+	if eq := byteIndex(line, '='); eq != -1 {
+		k = k[:eq]
+		v = line[eq+1:]
+	}
+
+	return w, k, v
+}
