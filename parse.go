@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	_ErrTooLong = "line %d too long (buffer overflow thwarted)"
+	_ErrTooLong       = "line %d too long (buffer overflow thwarted)"
+	_ErrInvalidIndent = "invalid indentation on line %d"
 )
 
 // Defines a "key = value" assignment.
@@ -14,6 +15,59 @@ type def struct {
 	key   string
 	value string
 	line  int
+}
+
+// Reads the output of `r`, and puts together a list of key/value
+// definitions.
+func parse(r io.Reader, buf []byte) ([]def, error) {
+	lines, err := readLines(r, buf)
+	if err != nil {
+		return nil, err
+	}
+
+	defs := make([]def, 0)
+
+	indents := make([][]byte, 0)
+	stack := make([][]byte, 0)
+	allowChild := true
+
+	for i, line := range lines {
+		if isEmpty(line) {
+			continue
+		}
+
+		w, k, v := split(line)
+		d := depth(indents, w)
+
+		if d == -1 || (d >= len(indents) && !allowChild) {
+			return nil, fmt.Errorf(_ErrInvalidIndent, i+1)
+		}
+
+		// trim redundant indentation info
+		if d < len(indents) {
+			indents = indents[:d]
+			stack = stack[:d]
+		}
+
+		indents = append(indents, w)
+		stack = append(stack, k)
+
+		// contains an assignment
+		if v != nil {
+			defs = append(defs, def{
+				key:   resolve(stack...),
+				value: string(v),
+				line:  i,
+			})
+
+			allowChild = false
+			continue
+		}
+
+		allowChild = true
+	}
+
+	return defs, nil
 }
 
 // Generates a slice of lines from a reader. Each line must fit in `buf`, or
@@ -124,4 +178,26 @@ func depth(parents [][]byte, current []byte) int {
 
 	// the current line is further indented than its parent
 	return len(parents)
+}
+
+// Generates a string containing each key in `stack`, separated by a dot.
+func resolve(stack ...[]byte) string {
+	size := len(stack) - 1
+	for i, key := range stack {
+		size += len(key)
+	}
+
+	joined := make([]byte, size)
+	offset := 0
+
+	for i, key := range stack {
+		if i > 0 {
+			joined[offset] = '.'
+			offset++
+		}
+
+		offset += copy(joined[offset:], key)
+	}
+
+	return string(joined)
 }
