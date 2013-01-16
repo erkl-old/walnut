@@ -17,7 +17,7 @@ type def struct {
 }
 
 // Generates a slice of lines from a reader. Each line must fit in `buf`, or
-// a `ErrLineTooLong` error will be returned.
+// an error will be returned.
 func readLines(r io.Reader, buf []byte) ([][]byte, error) {
 	lines := make([][]byte, 0)
 	start, cont := 0, 0
@@ -38,7 +38,7 @@ func readLines(r io.Reader, buf []byte) ([][]byte, error) {
 		}
 
 		for {
-			nl := byteIndex(buf[cont:end], '\n')
+			nl := indexOf(buf[cont:end], '\n')
 			if nl == -1 {
 				break
 			}
@@ -94,7 +94,7 @@ func split(line []byte) (w, k, v []byte) {
 
 	k = line[len(w):]
 
-	if eq := byteIndex(line, '='); eq != -1 {
+	if eq := indexOf(line, '='); eq != -1 {
 		k = k[:eq]
 		v = line[eq+1:]
 	}
