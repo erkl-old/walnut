@@ -57,7 +57,7 @@ func parse(r io.Reader, buf []byte) ([]def, error) {
 			defs = append(defs, def{
 				key:   resolve(stack...),
 				value: string(v),
-				line:  i,
+				line:  i + 1,
 			})
 
 			allowChild = false
@@ -146,11 +146,11 @@ func split(line []byte) (w, k, v []byte) {
 		w = line[:i+1]
 	}
 
-	k = line[len(w):]
-
 	if eq := indexOf(line, '='); eq != -1 {
-		k = k[:eq]
+		k = line[len(w):eq]
 		v = line[eq+1:]
+	} else {
+		k = line[len(w):]
 	}
 
 	return w, k, v
@@ -183,7 +183,7 @@ func depth(parents [][]byte, current []byte) int {
 // Generates a string containing each key in `stack`, separated by a dot.
 func resolve(stack ...[]byte) string {
 	size := len(stack) - 1
-	for i, key := range stack {
+	for _, key := range stack {
 		size += len(key)
 	}
 

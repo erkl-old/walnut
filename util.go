@@ -12,7 +12,7 @@ func indexOf(haystack []byte, needle byte) int {
 
 // Returns true if `subject` begins with `prefix`.
 func hasPrefix(subject, prefix []byte) bool {
-	if len(subject) <= len(prefix) {
+	if len(subject) < len(prefix) {
 		return false
 	}
 
