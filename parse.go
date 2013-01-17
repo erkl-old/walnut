@@ -201,3 +201,33 @@ func resolve(stack ...[]byte) string {
 
 	return string(joined)
 }
+
+// Returns the position of the first `needle` in `haystack`.
+func indexOf(haystack []byte, needle byte) int {
+	for i, b := range haystack {
+		if b == needle {
+			return i
+		}
+	}
+	return -1
+}
+
+// Returns true if `subject` begins with `prefix`.
+func hasPrefix(subject, prefix []byte) bool {
+	if len(subject) < len(prefix) {
+		return false
+	}
+
+	for i, b := range prefix {
+		if subject[i] != b {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Returns true if `b` is a whitespace character.
+func isSpace(b byte) bool {
+	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
+}
