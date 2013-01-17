@@ -15,7 +15,7 @@ var (
 		`^[ \t]*(\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)? [\-\+]\d{4})`)
 )
 
-// Attempts to extract a boolean value from the beginning of `in`.
+// Attempts to extract a string literal from the beginning of `in`.
 func readBool(in []byte) (bool, int) {
 	if m := _TruthyRegexp.FindIndex(in); m != nil {
 		return true, m[1]
@@ -57,6 +57,52 @@ func readFloat64(in []byte) (float64, int) {
 	}
 
 	return v, m[3]
+}
+
+// Attempts to extract a timestamp from the beginning of `in`.
+func readString(in []byte) (string, int) {
+	start := 0
+	for start < len(in) && (in[start] == ' ' || in[start] == '\t') {
+		start++
+	}
+
+	if len(in)-start < 2 || in[start] != '"' {
+		return "", 0
+	}
+
+	i := start + 1 // jump the first double quote
+	end := -1
+	escaped := false
+
+	for end == -1 {
+		if i == len(in) {
+			// end of input reached before finding a closing quote
+			return "", 0
+		}
+
+		b := in[i]
+
+		switch {
+		case b <= 0x20:
+			// control characters aren't inside a string literal
+			return "", 0
+		case escaped:
+			escaped = false
+		case b == '\\':
+			escaped = true
+		case b == '"':
+			end = i
+		}
+
+		i++
+	}
+
+	v, err := strconv.Unquote(string(in[start : end+1]))
+	if err != nil {
+		return "", 0
+	}
+
+	return v, end + 1
 }
 
 // Attempts to extract a timestamp from the beginning of `in`.
