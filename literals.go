@@ -3,6 +3,7 @@ package walnut
 import (
 	"regexp"
 	"strconv"
+	"time"
 )
 
 var (
@@ -10,6 +11,8 @@ var (
 	_FalsyRegexp  = regexp.MustCompile(`^[ \t]*(false|no|off)`)
 	_IntRegexp    = regexp.MustCompile(`^[ \t]*([\+\-]?\d+)`)
 	_FloatRegexp  = regexp.MustCompile(`^[ \t]*([\+\-]?\d+(?:\.\d+)?)`)
+	_TimeRegexp   = regexp.MustCompile(
+		`^[ \t]*(\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)? [\-\+]\d{4})`)
 )
 
 // Attempts to extract a boolean value from the beginning of `in`.
@@ -51,6 +54,22 @@ func readFloat64(in []byte) (float64, int) {
 	v, err := strconv.ParseFloat(slice, 64)
 	if err != nil {
 		return 0, 0
+	}
+
+	return v, m[3]
+}
+
+// Attempts to extract a timestamp from the beginning of `in`.
+func readTime(in []byte) (time.Time, int) {
+	m := _TimeRegexp.FindSubmatchIndex(in)
+	if m == nil {
+		return time.Time{}, 0
+	}
+
+	slice := string(in[m[2]:m[3]])
+	v, err := time.Parse("2006-01-02 15:04:05 -0700", slice)
+	if err != nil {
+		return time.Time{}, 0
 	}
 
 	return v, m[3]
