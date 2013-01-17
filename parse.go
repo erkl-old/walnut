@@ -125,7 +125,7 @@ func push(lines [][]byte, line []byte) [][]byte {
 // Returns `true` if the line is blank, or is commented out.
 func isEmpty(line []byte) bool {
 	for _, b := range line {
-		if isSpace(b) {
+		if b == ' ' || b == '\t' {
 			continue
 		}
 		if b == '#' {
@@ -140,7 +140,7 @@ func isEmpty(line []byte) bool {
 // of a "key = value" line.
 func split(line []byte) (w, k, v []byte) {
 	for i, b := range line {
-		if !isSpace(b) {
+		if b != ' ' && b != '\t' {
 			break
 		}
 		w = line[:i+1]
@@ -225,9 +225,4 @@ func hasPrefix(subject, prefix []byte) bool {
 	}
 
 	return true
-}
-
-// Returns true if `b` is a whitespace character.
-func isSpace(b byte) bool {
-	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
 }
