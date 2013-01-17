@@ -1,6 +1,7 @@
 package walnut
 
 import (
+	"bytes"
 	"regexp"
 	"strconv"
 	"time"
@@ -119,4 +120,78 @@ func readTime(in []byte) (time.Time, int) {
 	}
 
 	return v, m[3]
+}
+
+// Attempts to extract a timestamp from the beginning of `in`.
+func readDuration(in []byte) (time.Duration, int) {
+	offset := 0
+	total := time.Duration(0)
+
+	for {
+		v, n := readDurationPartial(in[offset:])
+		if n == 0 {
+			break
+		}
+
+		// guard against integer overflow
+		if total+v <= total {
+			return 0, 0
+		}
+
+		total += v
+		offset += n
+	}
+
+	return total, offset
+}
+
+var timeUnits = []struct {
+	name []byte
+	dur  time.Duration
+}{
+	{[]byte("ns"), time.Nanosecond},
+	{[]byte("μs"), time.Microsecond}, // \u03bc
+	{[]byte("µs"), time.Microsecond}, // \u00b5
+	{[]byte("us"), time.Microsecond},
+	{[]byte("ms"), time.Millisecond},
+	{[]byte("s"), time.Second},
+	{[]byte("m"), time.Minute},
+	{[]byte("h"), time.Hour},
+	{[]byte("d"), 24 * time.Hour},
+	{[]byte("w"), 7 * 24 * time.Hour},
+}
+
+func readDurationPartial(in []byte) (time.Duration, int) {
+	i, end := 0, len(in)
+
+	// skip whitespace
+	for i < end && (in[i] == ' ' || in[i] == '\t') {
+		i++
+	}
+
+	value := int64(0)
+	start := i
+
+	for ; i < end && ('0' <= in[i] && in[i] <= '9'); i++ {
+		// guard against integer overflow
+		next := (value * 10) + int64(in[i]-'0')
+		if next <= value {
+			return 0, 0
+		} else {
+			value = next
+		}
+	}
+
+	// did we find any digits?
+	if i == start {
+		return 0, 0
+	}
+
+	for _, unit := range timeUnits {
+		if bytes.HasPrefix(in[i:], unit.name) {
+			return time.Duration(value) * unit.dur, i + len(unit.name)
+		}
+	}
+
+	return 0, 0
 }

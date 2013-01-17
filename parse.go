@@ -1,6 +1,7 @@
 package walnut
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 )
@@ -92,7 +93,7 @@ func readLines(r io.Reader, buf []byte) ([][]byte, error) {
 		}
 
 		for {
-			nl := indexOf(buf[cont:end], '\n')
+			nl := bytes.IndexByte(buf[cont:end], '\n')
 			if nl == -1 {
 				break
 			}
@@ -146,7 +147,7 @@ func split(line []byte) (w, k, v []byte) {
 		w = line[:i+1]
 	}
 
-	if eq := indexOf(line, '='); eq != -1 {
+	if eq := bytes.IndexByte(line, '='); eq != -1 {
 		k = line[len(w):eq]
 		v = line[eq+1:]
 	} else {
@@ -168,7 +169,7 @@ func depth(parents [][]byte, current []byte) int {
 	}
 
 	for i, parent := range parents {
-		if !hasPrefix(current, parent) {
+		if !bytes.HasPrefix(current, parent) {
 			return -1
 		}
 		if len(current) == len(parent) {
@@ -200,29 +201,4 @@ func resolve(stack ...[]byte) string {
 	}
 
 	return string(joined)
-}
-
-// Returns the position of the first `needle` in `haystack`.
-func indexOf(haystack []byte, needle byte) int {
-	for i, b := range haystack {
-		if b == needle {
-			return i
-		}
-	}
-	return -1
-}
-
-// Returns true if `subject` begins with `prefix`.
-func hasPrefix(subject, prefix []byte) bool {
-	if len(subject) < len(prefix) {
-		return false
-	}
-
-	for i, b := range prefix {
-		if subject[i] != b {
-			return false
-		}
-	}
-
-	return true
 }
