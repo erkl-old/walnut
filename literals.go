@@ -11,7 +11,7 @@ var (
 	_TruthyRegexp = regexp.MustCompile(`^[ \t]*(true|yes|on)`)
 	_FalsyRegexp  = regexp.MustCompile(`^[ \t]*(false|no|off)`)
 	_IntRegexp    = regexp.MustCompile(`^[ \t]*([\+\-]?\d+)`)
-	_FloatRegexp  = regexp.MustCompile(`^[ \t]*([\+\-]?\d+(?:\.\d+)?)`)
+	_FloatRegexp  = regexp.MustCompile(`^[ \t]*([\+\-]?\d+\.\d+)`)
 	_TimeRegexp   = regexp.MustCompile(
 		`^[ \t]*(\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)? [\-\+]\d{4})`)
 )
