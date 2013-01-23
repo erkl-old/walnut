@@ -127,14 +127,23 @@ func readTime(in []byte) (time.Time, int) {
 
 // Attempts to extract a timestamp from the beginning of `in`.
 func readDuration(in []byte) (time.Duration, int) {
-	offset := 0
-	total := time.Duration(0)
+	var total, prev time.Duration
+	var offset int
 
 	for {
-		v, n := readDurationPartial(in[offset:])
+		num, unit, n := readDurationPartial(in[offset:])
 		if n == 0 {
 			break
 		}
+
+		// time units must appear in descending order (greatest first),
+		// and only once each
+		if prev != 0 && unit >= prev {
+			return 0, 0
+		}
+
+		prev = unit
+		v := time.Duration(num) * unit
 
 		// guard against integer overflow
 		if v > _MaxDuration-total {
@@ -164,7 +173,7 @@ var timeUnits = []struct {
 	{[]byte("w"), 7 * 24 * time.Hour},
 }
 
-func readDurationPartial(in []byte) (time.Duration, int) {
+func readDurationPartial(in []byte) (num int64, unit time.Duration, n int) {
 	i, end := 0, len(in)
 
 	// skip whitespace
@@ -172,30 +181,29 @@ func readDurationPartial(in []byte) (time.Duration, int) {
 		i++
 	}
 
-	value := int64(0)
 	start := i
 
 	for ; i < end && ('0' <= in[i] && in[i] <= '9'); i++ {
 		digit := int64(in[i] - '0')
 
 		// guard against overflow
-		if digit > _MaxInt64-(value*10) {
-			return 0, 0
+		if digit > _MaxInt64-(num*10) {
+			return 0, 0, 0
 		}
 
-		value = (value * 10) + digit
+		num = (num * 10) + digit
 	}
 
 	// did we find any digits?
 	if i == start {
-		return 0, 0
+		return 0, 0, 0
 	}
 
 	for _, unit := range timeUnits {
 		if bytes.HasPrefix(in[i:], unit.name) {
-			return time.Duration(value) * unit.dur, i + len(unit.name)
+			return num, unit.dur, i + len(unit.name)
 		}
 	}
 
-	return 0, 0
+	return 0, 0, 0
 }
