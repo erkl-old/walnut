@@ -21,10 +21,11 @@ func (c *Config) Keys() []string {
 	return keys
 }
 
-// Retrieves a value. Will return a non-nil error if the key either
-// hasn't been defined or is of a different type.
-func (c *Config) Get(key string) (interface{}, error) {
-	return nil, nil
+// Retrieves a value. The second return value will be `false` if the
+// value hasn't been defined.
+func (c *Config) Get(key string) (interface{}, bool) {
+	v, ok := (*c)[key]
+	return v, ok
 }
 
 // Retrieves a string value. Will return a non-nil error if the key

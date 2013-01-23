@@ -35,3 +35,16 @@ func TestConfigKeys(t *testing.T) {
 		}
 	}
 }
+
+func TestConfigGet(t *testing.T) {
+	v, ok := sample.Get("undefined")
+	if v != nil || ok != false {
+		t.Fatalf("Config.Get(%q) -> %v, %v (want %v, %v)", v, ok, nil, false)
+	}
+
+	v, ok = sample.Get("cake-ratio")
+	if v.(float64) != 1.0 || ok == false {
+		t.Fatalf("Config.Get(%q) -> %v, %v (want %v, %v)",
+			v, ok, float64(1.0), true)
+	}
+}
