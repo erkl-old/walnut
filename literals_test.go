@@ -2,6 +2,7 @@ package walnut
 
 import (
 	"testing"
+	"time"
 )
 
 var readBoolTests = []struct {
@@ -155,6 +156,35 @@ func TestReadString(t *testing.T) {
 		if v != test.v || n != test.n {
 			t.Errorf("ReadString(%#q) -> %q, %d (want %q, %d)",
 				test.in, v, n, test.v, test.n)
+		}
+	}
+}
+
+var readTimeTests = []struct {
+	in string
+	n  int
+}{
+	{"", 0},
+	{"1970-01-01 00:00:00 +0000", 25},
+	{"2001-02-03 04:05:06 +0000", 25},
+	{"1997-08-28 15:30:27.123 +0000", 29},
+	{"1997-08-28 14:07:27 -0123", 25},
+	{"01:02:03", 0},
+	{"1970-01-01", 0},
+	{"1970-01-01 00:00:00", 0},
+	{"1970-02-48 00:00:00 +0000", 0},
+	{"70-01-01 00:00:00", 0},
+	{"1970-01-01 00:00:00 UTC", 0},
+}
+
+func TestReadTime(t *testing.T) {
+	for _, test := range readTimeTests {
+		v, n := readTime([]byte(test.in))
+		e, _ := time.Parse("2006-01-02 15:04:05 -0700", test.in[:n])
+
+		if !e.Equal(v) || n != test.n {
+			t.Errorf("readTime(%#q) -> %s, %d (want %s, %d)",
+				test.in, v, n, e, test.n)
 		}
 	}
 }
