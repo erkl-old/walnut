@@ -16,7 +16,6 @@ var readBoolTests = []struct {
 	{"offfoo", false, 3},
 	{" yes ", true, 4},
 	{"\t \tno", false, 5},
-
 	{"blurgh", false, 0},
 	{"  blop  ", false, 0},
 }
@@ -26,7 +25,7 @@ func TestReadBool(t *testing.T) {
 		v, n := readBool([]byte(test.in))
 
 		if v != test.v || n != test.n {
-			t.Errorf("readBool(%#q) -> %v, %d (want %v, %d)",
+			t.Errorf("readBool(%q) -> %v, %v (want %v, %v)",
 				test.in, v, n, test.v, test.n)
 		}
 	}
@@ -69,7 +68,7 @@ func TestReadInt64(t *testing.T) {
 		v, n := readInt64([]byte(test.in))
 
 		if v != test.v || n != test.n {
-			t.Errorf("readInt64(%#q) -> %d, %d (want %d, %d)",
+			t.Errorf("readInt64(%q) -> %v, %v (want %v, %v)",
 				test.in, v, n, test.v, test.n)
 		}
 	}
@@ -118,7 +117,7 @@ func TestReadFloat64(t *testing.T) {
 		v, n := readFloat64([]byte(test.in))
 
 		if v != test.v || n != test.n {
-			t.Errorf("ReadFloat64(%#q) -> %f, %d (want %f, %d)",
+			t.Errorf("readFloat64(%q) -> %v, %v (want %v, %v)",
 				test.in, v, n, test.v, test.n)
 		}
 	}
@@ -154,7 +153,7 @@ func TestReadString(t *testing.T) {
 		v, n := readString([]byte(test.in))
 
 		if v != test.v || n != test.n {
-			t.Errorf("ReadString(%#q) -> %q, %d (want %q, %d)",
+			t.Errorf("readString(%q) -> %q, %v (want %q, %v)",
 				test.in, v, n, test.v, test.n)
 		}
 	}
@@ -183,7 +182,7 @@ func TestReadTime(t *testing.T) {
 		e, _ := time.Parse("2006-01-02 15:04:05 -0700", test.in[:n])
 
 		if !e.Equal(v) || n != test.n {
-			t.Errorf("readTime(%#q) -> %s, %d (want %s, %d)",
+			t.Errorf("readTime(%q) -> %s, %v (want %s, %v)",
 				test.in, v, n, e, test.n)
 		}
 	}
