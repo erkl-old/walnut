@@ -1,8 +1,14 @@
 package walnut
 
 import (
+	"errors"
 	"sort"
 	"time"
+)
+
+var (
+	ErrUndefined = errors.New("key is not defined")
+	ErrWrongType = errors.New("key is not of the expected type")
 )
 
 type Config map[string]interface{}
