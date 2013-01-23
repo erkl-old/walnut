@@ -39,13 +39,14 @@ func TestConfigKeys(t *testing.T) {
 func TestConfigGet(t *testing.T) {
 	v, ok := sample.Get("undefined")
 	if v != nil || ok != false {
-		t.Fatalf("Config.Get(%q) -> %v, %v (want %v, %v)", v, ok, nil, false)
+		t.Fatalf("Config.Get(%q) -> %v, %v (want %v, %v)",
+			"undefined", v, ok, nil, false)
 	}
 
 	v, ok = sample.Get("cake-ratio")
-	if v.(float64) != 1.0 || ok == false {
+	if v.(float64) != 1.0 || ok != true {
 		t.Fatalf("Config.Get(%q) -> %v, %v (want %v, %v)",
-			v, ok, float64(1.0), true)
+			"cake-ratio", v, ok, float64(1.0), true)
 	}
 }
 
@@ -53,18 +54,18 @@ func TestConfigString(t *testing.T) {
 	v, err := sample.String("undefined")
 	if v != "" || err != ErrUndefined {
 		t.Fatalf("Config.String(%q) -> %q, %#v (want %q, %#v)",
-			v, err, "", ErrUndefined)
+			"undefined", v, err, "", ErrUndefined)
 	}
 
 	v, err = sample.String("greet.delay")
 	if v != "" || err != ErrWrongType {
 		t.Fatalf("Config.String(%q) -> %q, %#v (want %q, %#v)",
-			v, err, "", ErrWrongType)
+			"greet.delay", v, err, "", ErrWrongType)
 	}
 
 	v, err = sample.String("greet.string")
 	if v != "hello" || err != nil {
 		t.Fatalf("Config.String(%q) -> %q, %#v (want %q, %#v)",
-			v, err, "hello", nil)
+			"greet.string", v, err, "hello", nil)
 	}
 }
