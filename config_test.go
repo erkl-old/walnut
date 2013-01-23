@@ -48,3 +48,23 @@ func TestConfigGet(t *testing.T) {
 			v, ok, float64(1.0), true)
 	}
 }
+
+func TestConfigString(t *testing.T) {
+	v, err := sample.String("undefined")
+	if v != "" || err != ErrUndefined {
+		t.Fatalf("Config.String(%q) -> %q, %#v (want %q, %#v)",
+			v, err, "", ErrUndefined)
+	}
+
+	v, err = sample.String("greet.delay")
+	if v != "" || err != ErrWrongType {
+		t.Fatalf("Config.String(%q) -> %q, %#v (want %q, %#v)",
+			v, err, "", ErrWrongType)
+	}
+
+	v, err = sample.String("greet.string")
+	if v != "hello" || err != nil {
+		t.Fatalf("Config.String(%q) -> %q, %#v (want %q, %#v)",
+			v, err, "hello", nil)
+	}
+}

@@ -37,7 +37,17 @@ func (c *Config) Get(key string) (interface{}, bool) {
 // Retrieves a string value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) String(key string) (string, error) {
-	return "", nil
+	v, ok := (*c)[key]
+	if !ok {
+		return "", ErrUndefined
+	}
+
+	s, ok := v.(string)
+	if !ok {
+		return "", ErrWrongType
+	}
+
+	return s, nil
 }
 
 // Retrieves a bool value. Will return a non-nil error if the key
