@@ -1,6 +1,7 @@
 package walnut
 
 import (
+	"testing"
 	"time"
 )
 
@@ -11,4 +12,26 @@ var sample = Config{
 	"greet.delay":  2 * time.Second,
 	"cake-ratio":   float64(1.0),
 	"timestamp":    time.Date(2012, 12, 28, 15, 10, 15, 0, time.UTC),
+}
+
+func TestConfigKeys(t *testing.T) {
+	actual := sample.Keys()
+	expected := []string{
+		"cake-ratio",
+		"greet.delay",
+		"greet.string",
+		"http.host",
+		"http.port",
+		"timestamp",
+	}
+
+	if len(actual) != len(expected) {
+		t.Fatalf("Config.Keys() -> %v (want %v)", actual, expected)
+	}
+
+	for i := 0; i < len(expected); i++ {
+		if actual[i] != expected[i] {
+			t.Fatalf("Config.Keys() -> %v (want %v)", actual, expected)
+		}
+	}
 }

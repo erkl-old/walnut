@@ -1,6 +1,7 @@
 package walnut
 
 import (
+	"sort"
 	"time"
 )
 
@@ -8,7 +9,16 @@ type Config map[string]interface{}
 
 // Returns a list of all defined keys, sorted lexographically.
 func (c *Config) Keys() []string {
-	return make([]string, 0)
+	self := *c
+	keys := make([]string, 0)
+
+	for key, _ := range self {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	return keys
 }
 
 // Creates a new config instance containing the keys in `.
