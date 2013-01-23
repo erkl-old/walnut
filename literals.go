@@ -14,6 +14,9 @@ var (
 	_FloatRegexp  = regexp.MustCompile(`^[ \t]*([\+\-]?\d+\.\d+)`)
 	_TimeRegexp   = regexp.MustCompile(
 		`^[ \t]*(\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)? [\-\+]\d{4})`)
+
+	_MaxInt64    int64         = 1<<63 - 1
+	_MaxDuration time.Duration = 1<<63 - 1
 )
 
 // Attempts to extract a string literal from the beginning of `in`.
@@ -134,7 +137,7 @@ func readDuration(in []byte) (time.Duration, int) {
 		}
 
 		// guard against integer overflow
-		if total+v <= total {
+		if v > _MaxDuration-total {
 			return 0, 0
 		}
 
@@ -173,13 +176,14 @@ func readDurationPartial(in []byte) (time.Duration, int) {
 	start := i
 
 	for ; i < end && ('0' <= in[i] && in[i] <= '9'); i++ {
-		// guard against integer overflow
-		next := (value * 10) + int64(in[i]-'0')
-		if next <= value {
+		digit := int64(in[i] - '0')
+
+		// guard against overflow
+		if digit > _MaxInt64-(value*10) {
 			return 0, 0
-		} else {
-			value = next
 		}
+
+		value = (value * 10) + digit
 	}
 
 	// did we find any digits?
