@@ -21,11 +21,6 @@ func (c *Config) Keys() []string {
 	return keys
 }
 
-// Creates a new config instance containing the keys in `.
-func (c *Config) Select(prefix string) *Config {
-	return c
-}
-
 // Retrieves a value. Will return a non-nil error if the key either
 // hasn't been defined or is of a different type.
 func (c *Config) Get(key string) (interface{}, error) {
