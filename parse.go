@@ -9,6 +9,7 @@ import (
 const (
 	_ErrTooLong       = "line %d too long (buffer overflow thwarted)"
 	_ErrInvalidIndent = "invalid indentation on line %d"
+	_ErrInvalidValue  = "unrecognized value on line %d: %q"
 )
 
 // Defines a "key = value" assignment.
@@ -16,6 +17,53 @@ type def struct {
 	key   string
 	value string
 	line  int
+}
+
+// Generates a Config from an io.Reader instance.
+func Parse(r io.Reader, lineLimit int) (Config, error) {
+	defs, err := parse(r, make([]byte, lineLimit))
+	if err != nil {
+		return nil, err
+	}
+
+	conf := make(Config)
+
+	for _, d := range defs {
+		v, ok := parseLiteral(d.value)
+		if !ok {
+			return nil, fmt.Errorf(_ErrInvalidValue, d.line, d.value)
+		}
+
+		conf[d.key] = v
+	}
+
+	return conf, nil
+}
+
+// Processes a string, extracting a literal value if one can be found.
+func parseLiteral(s string) (interface{}, bool) {
+	b := []byte(s)
+
+	if v, n := readBool(b); n != 0 && isEmpty(b[n:]) {
+		return v, true
+	}
+	if v, n := readInt64(b); n != 0 && isEmpty(b[n:]) {
+		return v, true
+	}
+	if v, n := readFloat64(b); n != 0 && isEmpty(b[n:]) {
+		return v, true
+	}
+	if v, n := readString(b); n != 0 && isEmpty(b[n:]) {
+		return v, true
+	}
+	if v, n := readTime(b); n != 0 && isEmpty(b[n:]) {
+		return v, true
+	}
+	if v, n := readDuration(b); n != 0 && isEmpty(b[n:]) {
+		return v, true
+	}
+
+	return nil, false
 }
 
 // Reads the output of `r`, and puts together a list of key/value

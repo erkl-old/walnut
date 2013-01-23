@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type Config map[string]string
+type Config map[string]interface{}
 
 // Returns a list of all defined keys, sorted lexographically.
 func (c *Config) Keys() []string {
