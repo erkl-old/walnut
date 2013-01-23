@@ -187,3 +187,60 @@ func TestReadTime(t *testing.T) {
 		}
 	}
 }
+
+var readDurationTests = []struct {
+	in string
+	v  time.Duration
+	n  int
+}{
+	{"", 0, 0},
+	{"0s", 0, 2},
+	{"5s", 5 * time.Second, 2},
+	{"37s", 37 * time.Second, 3},
+	{"010s", 10 * time.Second, 4},
+	{"1sm", time.Second, 2},
+	{" 3d\t ", 3 * 24 * time.Hour, 3},
+	{"10ns", 10 * time.Nanosecond, 4},
+	{"10µs", 10 * time.Microsecond, 5},
+	{"10μs", 10 * time.Microsecond, 5},
+	{"10us", 10 * time.Microsecond, 4},
+	{"10ms", 10 * time.Millisecond, 4},
+	{"10s", 10 * time.Second, 3},
+	{"10m", 10 * time.Minute, 3},
+	{"10h", 10 * time.Hour, 3},
+	{"10d", 10 * 24 * time.Hour, 3},
+	{"10w", 10 * 7 * 24 * time.Hour, 3},
+	{"1h1m1s", time.Hour + time.Minute + time.Second, 6},
+	{"1h 1m1s", time.Hour + time.Minute + time.Second, 7},
+	{"4h30m", 4*time.Hour + 30*time.Minute, 5},
+	{"4h 30m", 4*time.Hour + 30*time.Minute, 6},
+	{"1s500ms", time.Second + 500*time.Millisecond, 7},
+	{"1s 500ms", time.Second + 500*time.Millisecond, 8},
+	{"1w1d24h1440m", 10 * 24 * time.Hour, 12},
+	{"1w 1d 24h 1440m", 10 * 24 * time.Hour, 15},
+	{"10w -3d", 10 * 7 * 24 * time.Hour, 3},
+	{"1d 200", 24 * time.Hour, 2},
+	{"1h 1m 1.3s", 1*time.Hour + 1*time.Minute, 5},
+	{"-3h", 0, 0},
+	{"+5m", 0, 0},
+	{"300.5h", 0, 0},
+	{"1.2d20m", 0, 0},
+	{"1s2h", 0, 0},
+	{"1200ms 3s", 0, 0},
+	{"4h 5d 6w 7m", 0, 0},
+	{"2 m", 0, 0},
+	{"4 d5 h", 0, 0},
+	{"100", 0, 0},
+	{"3 4 5ms", 0, 0},
+}
+
+func TestReadDurationTests(t *testing.T) {
+	for _, test := range readDurationTests {
+		v, n := readDuration([]byte(test.in))
+
+		if v != test.v || n != test.n {
+			t.Errorf("readTime(%q) -> %s, %v (want %s, %v)",
+				test.in, v, n, test.v, test.n)
+		}
+	}
+}
