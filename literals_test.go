@@ -122,3 +122,39 @@ func TestReadFloat64(t *testing.T) {
 		}
 	}
 }
+
+var readStringTests = []struct {
+	in string
+	v  string
+	n  int
+}{
+	{"", "", 0},
+	{`""`, "", 2},
+	{` "日本人"`, "日本人", 12},
+	{`"a\nb"`, "a\nb", 6},
+	{`"\u00FF"`, "ÿ", 8},
+	{"\t\"\\xFF\" ", "\xFF", 7},
+	{`"\U00010111"`, "\U00010111", 12},
+	{`"\U0001011111"`, "\U0001011111", 14},
+	{`"'"`, "'", 3},
+	{` "\""`, "\"", 5},
+	{`"a""`, "a", 3},
+	{`"lone`, "", 0},
+	{`hello`, "", 0},
+	{`"mismatch'`, "", 0},
+	{`"\"`, "", 0},
+	{`"a" "b"`, "a", 3},
+	{"`a`", "", 0},
+	{"'b'", "", 0},
+}
+
+func TestReadString(t *testing.T) {
+	for _, test := range readStringTests {
+		v, n := readString([]byte(test.in))
+
+		if v != test.v || n != test.n {
+			t.Errorf("ReadString(%#q) -> %q, %d (want %q, %d)",
+				test.in, v, n, test.v, test.n)
+		}
+	}
+}
