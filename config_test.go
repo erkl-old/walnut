@@ -131,3 +131,47 @@ func TestConfigFloat64(t *testing.T) {
 			"cake-ratio", v, err, 8080, nil)
 	}
 }
+
+func TestConfigTime(t *testing.T) {
+	zero := time.Time{}
+
+	v, err := sample.Time("undefined")
+	if v != zero || err != ErrUndefined {
+		t.Fatalf("Config.Time(%q) -> %q, %#v (want %q, %#v)",
+			"undefined", v, err, 0, ErrUndefined)
+	}
+
+	v, err = sample.Time("greet.delay")
+	if v != zero || err != ErrWrongType {
+		t.Fatalf("Config.Time(%q) -> %q, %#v (want %q, %#v)",
+			"greet.delay", v, err, 0, ErrWrongType)
+	}
+
+	want := time.Date(2012, 12, 28, 15, 10, 15, 0, time.UTC)
+
+	v, err = sample.Time("timestamp")
+	if v != want || err != nil {
+		t.Fatalf("Config.Time(%q) -> %q, %#v (want %q, %#v)",
+			"timestamp", v, err, 8080, nil)
+	}
+}
+
+func TestConfigDuration(t *testing.T) {
+	v, err := sample.Duration("undefined")
+	if v != 0 || err != ErrUndefined {
+		t.Fatalf("Config.Duration(%q) -> %q, %#v (want %q, %#v)",
+			"undefined", v, err, 0, ErrUndefined)
+	}
+
+	v, err = sample.Duration("timestamp")
+	if v != 0 || err != ErrWrongType {
+		t.Fatalf("Config.Duration(%q) -> %q, %#v (want %q, %#v)",
+			"timestamp", v, err, 8080, nil)
+	}
+
+	v, err = sample.Duration("greet.delay")
+	if v != 2*time.Second || err != nil {
+		t.Fatalf("Config.Duration(%q) -> %q, %#v (want %q, %#v)",
+			"greet.delay", v, err, 0, ErrWrongType)
+	}
+}
