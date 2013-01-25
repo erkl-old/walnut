@@ -111,3 +111,23 @@ func TestConfigInt64(t *testing.T) {
 			"http.port", v, err, 8080, nil)
 	}
 }
+
+func TestConfigFloat64(t *testing.T) {
+	v, err := sample.Float64("undefined")
+	if v != 0 || err != ErrUndefined {
+		t.Fatalf("Config.Float64(%q) -> %q, %#v (want %q, %#v)",
+			"undefined", v, err, 0, ErrUndefined)
+	}
+
+	v, err = sample.Float64("greet.delay")
+	if v != 0 || err != ErrWrongType {
+		t.Fatalf("Config.Float64(%q) -> %q, %#v (want %q, %#v)",
+			"greet.delay", v, err, 0, ErrWrongType)
+	}
+
+	v, err = sample.Float64("cake-ratio")
+	if v != 1.0 || err != nil {
+		t.Fatalf("Config.Float64(%q) -> %q, %#v (want %q, %#v)",
+			"cake-ratio", v, err, 8080, nil)
+	}
+}
