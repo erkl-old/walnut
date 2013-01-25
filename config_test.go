@@ -71,3 +71,23 @@ func TestConfigString(t *testing.T) {
 			"greet.string", v, err, "hello", nil)
 	}
 }
+
+func TestConfigBool(t *testing.T) {
+	v, err := sample.Bool("undefined")
+	if v != false || err != ErrUndefined {
+		t.Fatalf("Config.Bool(%q) -> %q, %#v (want %q, %#v)",
+			"undefined", v, err, false, ErrUndefined)
+	}
+
+	v, err = sample.Bool("cake-ratio")
+	if v != false || err != ErrWrongType {
+		t.Fatalf("Config.Bool(%q) -> %q, %#v (want %q, %#v)",
+			"cake-ratio", v, err, false, ErrWrongType)
+	}
+
+	v, err = sample.Bool("debug-mode")
+	if v != true || err != nil {
+		t.Fatalf("Config.Bool(%q) -> %q, %#v (want %q, %#v)",
+			"debug-mode", v, err, true, nil)
+	}
+}
