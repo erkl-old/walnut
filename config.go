@@ -53,29 +53,79 @@ func (c *Config) String(key string) (string, error) {
 // Retrieves a bool value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Bool(key string) (bool, error) {
-	return false, nil
+	v, ok := (*c)[key]
+	if !ok {
+		return false, ErrUndefined
+	}
+
+	b, ok := v.(bool)
+	if !ok {
+		return false, ErrWrongType
+	}
+
+	return b, nil
 }
 
 // Retrieves an integer value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Int64(key string) (int64, error) {
-	return 0, nil
+	v, ok := (*c)[key]
+	if !ok {
+		return 0, ErrUndefined
+	}
+
+	i, ok := v.(int64)
+	if !ok {
+		return 0, ErrWrongType
+	}
+
+	return i, nil
 }
 
 // Retrieves a float value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Float64(key string) (float64, error) {
-	return 0, nil
+	v, ok := (*c)[key]
+	if !ok {
+		return 0, ErrUndefined
+	}
+
+	f, ok := v.(float64)
+	if !ok {
+		return 0, ErrWrongType
+	}
+
+	return f, nil
 }
 
 // Retrieves a duration value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Duration(key string) (time.Duration, error) {
-	return time.Duration(0), nil
+	v, ok := (*c)[key]
+	if !ok {
+		return time.Duration(0), ErrUndefined
+	}
+
+	d, ok := v.(time.Duration)
+	if !ok {
+		return time.Duration(0), ErrWrongType
+	}
+
+	return d, nil
 }
 
 // Retrieves a time value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Time(key string) (time.Time, error) {
-	return time.Now(), nil
+	v, ok := (*c)[key]
+	if !ok {
+		return time.Time{}, ErrUndefined
+	}
+
+	t, ok := v.(time.Time)
+	if !ok {
+		return time.Time{}, ErrWrongType
+	}
+
+	return t, nil
 }
