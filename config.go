@@ -98,22 +98,6 @@ func (c *Config) Float64(key string) (float64, error) {
 	return f, nil
 }
 
-// Retrieves a duration value. Will return a non-nil error if the key
-// either hasn't been defined or is of a different type.
-func (c *Config) Duration(key string) (time.Duration, error) {
-	v, ok := (*c)[key]
-	if !ok {
-		return time.Duration(0), ErrUndefined
-	}
-
-	d, ok := v.(time.Duration)
-	if !ok {
-		return time.Duration(0), ErrWrongType
-	}
-
-	return d, nil
-}
-
 // Retrieves a time value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Time(key string) (time.Time, error) {
@@ -128,4 +112,20 @@ func (c *Config) Time(key string) (time.Time, error) {
 	}
 
 	return t, nil
+}
+
+// Retrieves a duration value. Will return a non-nil error if the key
+// either hasn't been defined or is of a different type.
+func (c *Config) Duration(key string) (time.Duration, error) {
+	v, ok := (*c)[key]
+	if !ok {
+		return time.Duration(0), ErrUndefined
+	}
+
+	d, ok := v.(time.Duration)
+	if !ok {
+		return time.Duration(0), ErrWrongType
+	}
+
+	return d, nil
 }
