@@ -91,3 +91,23 @@ func TestConfigBool(t *testing.T) {
 			"debug-mode", v, err, true, nil)
 	}
 }
+
+func TestConfigInt64(t *testing.T) {
+	v, err := sample.Int64("undefined")
+	if v != 0 || err != ErrUndefined {
+		t.Fatalf("Config.Int64(%q) -> %q, %#v (want %q, %#v)",
+			"undefined", v, err, 0, ErrUndefined)
+	}
+
+	v, err = sample.Int64("greet.delay")
+	if v != 0 || err != ErrWrongType {
+		t.Fatalf("Config.Int64(%q) -> %q, %#v (want %q, %#v)",
+			"greet.delay", v, err, 0, ErrWrongType)
+	}
+
+	v, err = sample.Int64("http.port")
+	if v != 8080 || err != nil {
+		t.Fatalf("Config.Int64(%q) -> %q, %#v (want %q, %#v)",
+			"http.port", v, err, 8080, nil)
+	}
+}
