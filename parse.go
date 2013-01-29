@@ -1,223 +1,128 @@
 package walnut
 
 import (
-	"bytes"
 	"fmt"
-	"io"
+	"strings"
 )
 
 const (
-	_ErrTooLong       = "line %d too long (buffer overflow thwarted)"
 	_ErrInvalidIndent = "invalid indentation on line %d"
 	_ErrInvalidValue  = "unrecognized value on line %d: %q"
 )
 
-// Defines a "key = value" assignment.
-type def struct {
-	key   string
-	value string
-	line  int
+type definition struct {
+	key  string
+	val  interface{}
+	raw  string
+	line int
 }
 
-// Generates a Config from an io.Reader instance.
-func Parse(r io.Reader, lineLimit int) (Config, error) {
-	defs, err := parse(r, make([]byte, lineLimit))
+// Generates a Config instance from a raw configuration file. Returns an
+// error if the source contains a syntax error.
+func Parse(in []byte) (Config, error) {
+	defs, err := definitions(in)
 	if err != nil {
 		return nil, err
 	}
 
-	conf := make(Config)
-
-	for _, d := range defs {
-		v, ok := parseLiteral(d.value)
-		if !ok {
-			return nil, fmt.Errorf(_ErrInvalidValue, d.line, d.value)
-		}
-
-		conf[d.key] = v
+	m := make(map[string]interface{})
+	for _, def := range defs {
+		m[def.key] = def.val
 	}
 
-	return conf, nil
+	return Config(m), nil
 }
 
-// Processes a string, extracting a literal value if one can be found.
-func parseLiteral(s string) (interface{}, bool) {
-	b := []byte(s)
+// Generates a set of definitions from a raw configuration file. Returns an
+// error if the source contains a syntax error.
+func definitions(in []byte) ([]definition, error) {
+	defs := make([]definition, 0)
 
-	if v, n := readBool(b); n != 0 && isEmpty(b[n:]) {
-		return v, true
-	}
-	if v, n := readInt64(b); n != 0 && isEmpty(b[n:]) {
-		return v, true
-	}
-	if v, n := readFloat64(b); n != 0 && isEmpty(b[n:]) {
-		return v, true
-	}
-	if v, n := readString(b); n != 0 && isEmpty(b[n:]) {
-		return v, true
-	}
-	if v, n := readTime(b); n != 0 && isEmpty(b[n:]) {
-		return v, true
-	}
-	if v, n := readDuration(b); n != 0 && isEmpty(b[n:]) {
-		return v, true
-	}
+	stack := make([]string, 0)
+	levels := make([]string, 0)
+	isLeaf := false
 
-	return nil, false
-}
-
-// Reads the output of `r`, and puts together a list of key/value
-// definitions.
-func parse(r io.Reader, buf []byte) ([]def, error) {
-	lines, err := readLines(r, buf)
-	if err != nil {
-		return nil, err
-	}
-
-	defs := make([]def, 0)
-
-	indents := make([][]byte, 0)
-	stack := make([][]byte, 0)
-	allowChild := true
+	lines := strings.Split(string(in), "\n")
 
 	for i, line := range lines {
 		if isEmpty(line) {
 			continue
 		}
 
-		w, k, v := split(line)
-		d := depth(indents, w)
+		s, k, v := components(line)
+		d := depth(levels, s)
 
-		if d == -1 || (d >= len(indents) && !allowChild) {
+		if d < 0 || (d == len(levels) && isLeaf) {
 			return nil, fmt.Errorf(_ErrInvalidIndent, i+1)
 		}
 
-		// trim redundant indentation info
-		if d < len(indents) {
-			indents = indents[:d]
+		// trim redundant indentation levels
+		if d < len(levels) {
 			stack = stack[:d]
+			levels = levels[:d]
 		}
 
-		indents = append(indents, w)
 		stack = append(stack, k)
+		levels = append(levels, s)
 
 		// contains an assignment
-		if v != nil {
-			defs = append(defs, def{
-				key:   resolve(stack...),
-				value: string(v),
-				line:  i + 1,
+		if v != "" {
+			value, ok := literal(v)
+			if !ok {
+				return nil, fmt.Errorf(_ErrInvalidValue, i+1, v)
+			}
+
+			defs = append(defs, definition{
+				key:  strings.Join(stack, "."),
+				val:  value,
+				raw:  v,
+				line: i + 1,
 			})
 
-			allowChild = false
+			isLeaf = true
 			continue
 		}
 
-		allowChild = true
+		isLeaf = false
 	}
 
 	return defs, nil
 }
 
-// Generates a slice of lines from a reader. Each line must fit in `buf`, or
-// an error will be returned.
-func readLines(r io.Reader, buf []byte) ([][]byte, error) {
-	lines := make([][]byte, 0)
-	start, cont := 0, 0
-
-	for {
-		if cont == len(buf) {
-			return nil, fmt.Errorf(_ErrTooLong, len(lines)+1)
-		}
-
-		n, err := r.Read(buf[cont:])
-		end := cont + n
-
-		if err == io.EOF {
+// Splits a line into three components; 1) leading whitespace, 2) a key
+// string, and 3) a raw value string.
+func components(line string) (space, key, value string) {
+	for i := 0; i < len(line); i++ {
+		if line[i] != ' ' && line[i] != '\t' {
 			break
 		}
-		if err != nil {
-			return nil, err
-		}
-
-		for {
-			nl := bytes.IndexByte(buf[cont:end], '\n')
-			if nl == -1 {
-				break
-			}
-
-			lines = push(lines, buf[start:cont+nl])
-
-			start = cont + 1
-			cont += nl + 1
-		}
-
-		if start == 0 {
-			cont = end
-		} else {
-			cont = copy(buf, buf[start:end])
-			start = 0
-		}
+		space = string(line[:i+1])
 	}
 
-	return push(lines, buf[start:cont]), nil
-}
-
-// Safely appends a line to a slice of lines.
-func push(lines [][]byte, line []byte) [][]byte {
-	dup := make([]byte, len(line))
-	copy(dup, line)
-
-	return append(lines, dup)
-}
-
-// Returns `true` if the line is blank, or is commented out.
-func isEmpty(line []byte) bool {
-	for _, b := range line {
-		if b == ' ' || b == '\t' {
-			continue
-		}
-		if b == '#' {
-			break
-		}
-		return false
-	}
-	return true
-}
-
-// Returns the prefix whitespace and "key" and "value" components
-// of a "key = value" line.
-func split(line []byte) (w, k, v []byte) {
-	for i, b := range line {
-		if b != ' ' && b != '\t' {
-			break
-		}
-		w = line[:i+1]
-	}
-
-	if eq := bytes.IndexByte(line, '='); eq != -1 {
-		k = line[len(w):eq]
-		v = line[eq+1:]
+	if eq := strings.IndexRune(line, '='); eq != -1 {
+		key = string(line[len(space):eq])
+		value = string(line[eq+1:])
 	} else {
-		k = line[len(w):]
+		key = string(line[len(space):])
 	}
 
-	return w, k, v
+	return
 }
 
-// Determines a line's indentation depth by looking at its leading whitespace
-// and the leading whitespace of previous lines. Returns an int < 0 when the
-// indentation is invalid.
-func depth(parents [][]byte, current []byte) int {
+// ...
+func depth(parents []string, current string) int {
+	// ...
 	if len(current) == 0 {
 		return 0
-	} else if len(parents) == 0 {
-		// the base indentation level must be empty
+	}
+
+	// ...
+	if len(parents) == 0 {
 		return -1
 	}
 
 	for i, parent := range parents {
-		if !bytes.HasPrefix(current, parent) {
+		if !strings.HasPrefix(current, parent) {
 			return -1
 		}
 		if len(current) == len(parent) {
@@ -229,24 +134,45 @@ func depth(parents [][]byte, current []byte) int {
 	return len(parents)
 }
 
-// Generates a string containing each key in `stack`, separated by a dot.
-func resolve(stack ...[]byte) string {
-	size := len(stack) - 1
-	for _, key := range stack {
-		size += len(key)
+// Tries to extract a literal value from a string.
+func literal(s string) (interface{}, bool) {
+	if v, n := readBool(s); n != 0 && isEmpty(s[n:]) {
+		return v, true
+	}
+	if v, n := readInt64(s); n != 0 && isEmpty(s[n:]) {
+		return v, true
+	}
+	if v, n := readFloat64(s); n != 0 && isEmpty(s[n:]) {
+		return v, true
+	}
+	if v, n := readString(s); n != 0 && isEmpty(s[n:]) {
+		return v, true
+	}
+	if v, n := readTime(s); n != 0 && isEmpty(s[n:]) {
+		return v, true
+	}
+	if v, n := readDuration(s); n != 0 && isEmpty(s[n:]) {
+		return v, true
 	}
 
-	joined := make([]byte, size)
-	offset := 0
+	return nil, false
+}
 
-	for i, key := range stack {
-		if i > 0 {
-			joined[offset] = '.'
-			offset++
+// Returns true if the line is completely made up of whitespace, or if all
+// non-whitespace characters appear after the comment rune ('#').
+func isEmpty(s string) bool {
+	for i := 0; i < len(s); i++ {
+		b := s[i]
+
+		if b == ' ' || b == '\t' || b == '\r' {
+			continue
+		}
+		if b == '#' {
+			break
 		}
 
-		offset += copy(joined[offset:], key)
+		return false
 	}
 
-	return string(joined)
+	return true
 }
