@@ -1,0 +1,3 @@
+walnut implements a sensible configuration format for Go.
+
+See godoc.org/github.com/wub/walnut for details.
