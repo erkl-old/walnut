@@ -22,7 +22,7 @@ var readBoolTests = []struct {
 
 func TestReadBool(t *testing.T) {
 	for _, test := range readBoolTests {
-		v, n := readBool([]byte(test.in))
+		v, n := readBool(test.in)
 
 		if v != test.v || n != test.n {
 			t.Errorf("readBool(%q) -> %v, %v (want %v, %v)",
@@ -65,7 +65,7 @@ var readInt64Tests = []struct {
 
 func TestReadInt64(t *testing.T) {
 	for _, test := range readInt64Tests {
-		v, n := readInt64([]byte(test.in))
+		v, n := readInt64(test.in)
 
 		if v != test.v || n != test.n {
 			t.Errorf("readInt64(%q) -> %v, %v (want %v, %v)",
@@ -114,7 +114,7 @@ var readFloat64Tests = []struct {
 
 func TestReadFloat64(t *testing.T) {
 	for _, test := range readFloat64Tests {
-		v, n := readFloat64([]byte(test.in))
+		v, n := readFloat64(test.in)
 
 		if v != test.v || n != test.n {
 			t.Errorf("readFloat64(%q) -> %v, %v (want %v, %v)",
@@ -150,7 +150,7 @@ var readStringTests = []struct {
 
 func TestReadString(t *testing.T) {
 	for _, test := range readStringTests {
-		v, n := readString([]byte(test.in))
+		v, n := readString(test.in)
 
 		if v != test.v || n != test.n {
 			t.Errorf("readString(%q) -> %q, %v (want %q, %v)",
@@ -178,7 +178,7 @@ var readTimeTests = []struct {
 
 func TestReadTime(t *testing.T) {
 	for _, test := range readTimeTests {
-		v, n := readTime([]byte(test.in))
+		v, n := readTime(test.in)
 		e, _ := time.Parse("2006-01-02 15:04:05 -0700", test.in[:n])
 
 		if !e.Equal(v) || n != test.n {
@@ -236,7 +236,7 @@ var readDurationTests = []struct {
 
 func TestReadDurationTests(t *testing.T) {
 	for _, test := range readDurationTests {
-		v, n := readDuration([]byte(test.in))
+		v, n := readDuration(test.in)
 
 		if v != test.v || n != test.n {
 			t.Errorf("readTime(%q) -> %s, %v (want %s, %v)",

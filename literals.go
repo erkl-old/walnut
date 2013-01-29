@@ -1,9 +1,9 @@
 package walnut
 
 import (
-	"bytes"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,11 +20,11 @@ var (
 )
 
 // Attempts to extract a string literal from the beginning of `in`.
-func readBool(in []byte) (bool, int) {
-	if m := _TruthyRegexp.FindIndex(in); m != nil {
+func readBool(s string) (bool, int) {
+	if m := _TruthyRegexp.FindStringIndex(s); m != nil {
 		return true, m[1]
 	}
-	if m := _FalsyRegexp.FindIndex(in); m != nil {
+	if m := _FalsyRegexp.FindStringIndex(s); m != nil {
 		return false, m[1]
 	}
 
@@ -32,13 +32,13 @@ func readBool(in []byte) (bool, int) {
 }
 
 // Attempts to extract a signed integer from the beginning of `in`.
-func readInt64(in []byte) (int64, int) {
-	m := _IntRegexp.FindSubmatchIndex(in)
+func readInt64(s string) (int64, int) {
+	m := _IntRegexp.FindStringSubmatchIndex(s)
 	if m == nil {
 		return 0, 0
 	}
 
-	num := string(in[m[2]:m[3]])
+	num := s[m[2]:m[3]]
 	v, err := strconv.ParseInt(num, 10, 64)
 	if err != nil {
 		return 0, 0
@@ -48,13 +48,13 @@ func readInt64(in []byte) (int64, int) {
 }
 
 // Attempts to extract a floating point value from the beginning of `in`.
-func readFloat64(in []byte) (float64, int) {
-	m := _FloatRegexp.FindSubmatchIndex(in)
+func readFloat64(s string) (float64, int) {
+	m := _FloatRegexp.FindStringSubmatchIndex(s)
 	if m == nil {
 		return 0, 0
 	}
 
-	slice := string(in[m[2]:m[3]])
+	slice := s[m[2]:m[3]]
 	v, err := strconv.ParseFloat(slice, 64)
 	if err != nil {
 		return 0, 0
@@ -64,13 +64,13 @@ func readFloat64(in []byte) (float64, int) {
 }
 
 // Attempts to extract a timestamp from the beginning of `in`.
-func readString(in []byte) (string, int) {
+func readString(s string) (string, int) {
 	start := 0
-	for start < len(in) && (in[start] == ' ' || in[start] == '\t') {
+	for start < len(s) && (s[start] == ' ' || s[start] == '\t') {
 		start++
 	}
 
-	if len(in)-start < 2 || in[start] != '"' {
+	if len(s)-start < 2 || s[start] != '"' {
 		return "", 0
 	}
 
@@ -79,12 +79,12 @@ func readString(in []byte) (string, int) {
 	escaped := false
 
 	for end == -1 {
-		if i == len(in) {
+		if i == len(s) {
 			// end of input reached before finding a closing quote
 			return "", 0
 		}
 
-		b := in[i]
+		b := s[i]
 
 		switch {
 		case b <= 0x20:
@@ -101,7 +101,7 @@ func readString(in []byte) (string, int) {
 		i++
 	}
 
-	v, err := strconv.Unquote(string(in[start : end+1]))
+	v, err := strconv.Unquote(s[start : end+1])
 	if err != nil {
 		return "", 0
 	}
@@ -110,13 +110,13 @@ func readString(in []byte) (string, int) {
 }
 
 // Attempts to extract a timestamp from the beginning of `in`.
-func readTime(in []byte) (time.Time, int) {
-	m := _TimeRegexp.FindSubmatchIndex(in)
+func readTime(s string) (time.Time, int) {
+	m := _TimeRegexp.FindStringSubmatchIndex(s)
 	if m == nil {
 		return time.Time{}, 0
 	}
 
-	slice := string(in[m[2]:m[3]])
+	slice := s[m[2]:m[3]]
 	v, err := time.Parse("2006-01-02 15:04:05 -0700", slice)
 	if err != nil {
 		return time.Time{}, 0
@@ -126,12 +126,12 @@ func readTime(in []byte) (time.Time, int) {
 }
 
 // Attempts to extract a timestamp from the beginning of `in`.
-func readDuration(in []byte) (time.Duration, int) {
+func readDuration(s string) (time.Duration, int) {
 	var total, prev time.Duration
 	var offset int
 
 	for {
-		num, unit, n := readDurationPartial(in[offset:])
+		num, unit, n := readDurationPartial(s[offset:])
 		if n == 0 {
 			break
 		}
@@ -158,33 +158,33 @@ func readDuration(in []byte) (time.Duration, int) {
 }
 
 var timeUnits = []struct {
-	name []byte
+	name string
 	dur  time.Duration
 }{
-	{[]byte("ns"), time.Nanosecond},
-	{[]byte("μs"), time.Microsecond}, // \u03bc
-	{[]byte("µs"), time.Microsecond}, // \u00b5
-	{[]byte("us"), time.Microsecond},
-	{[]byte("ms"), time.Millisecond},
-	{[]byte("s"), time.Second},
-	{[]byte("m"), time.Minute},
-	{[]byte("h"), time.Hour},
-	{[]byte("d"), 24 * time.Hour},
-	{[]byte("w"), 7 * 24 * time.Hour},
+	{"ns", time.Nanosecond},
+	{"μs", time.Microsecond}, // \u03bc
+	{"µs", time.Microsecond}, // \u00b5
+	{"us", time.Microsecond},
+	{"ms", time.Millisecond},
+	{"s", time.Second},
+	{"m", time.Minute},
+	{"h", time.Hour},
+	{"d", 24 * time.Hour},
+	{"w", 7 * 24 * time.Hour},
 }
 
-func readDurationPartial(in []byte) (num int64, unit time.Duration, n int) {
-	i, end := 0, len(in)
+func readDurationPartial(s string) (num int64, unit time.Duration, n int) {
+	i, end := 0, len(s)
 
 	// skip whitespace
-	for i < end && (in[i] == ' ' || in[i] == '\t') {
+	for i < end && (s[i] == ' ' || s[i] == '\t') {
 		i++
 	}
 
 	start := i
 
-	for ; i < end && ('0' <= in[i] && in[i] <= '9'); i++ {
-		digit := int64(in[i] - '0')
+	for ; i < end && ('0' <= s[i] && s[i] <= '9'); i++ {
+		digit := int64(s[i] - '0')
 
 		// guard against overflow
 		if digit > _MaxInt64-(num*10) {
@@ -200,7 +200,7 @@ func readDurationPartial(in []byte) (num int64, unit time.Duration, n int) {
 	}
 
 	for _, unit := range timeUnits {
-		if bytes.HasPrefix(in[i:], unit.name) {
+		if strings.HasPrefix(s[i:], unit.name) {
 			return num, unit.dur, i + len(unit.name)
 		}
 	}
