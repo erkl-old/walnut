@@ -37,18 +37,20 @@ func TestConfigKeys(t *testing.T) {
 }
 
 func TestConfigGet(t *testing.T) {
-	// @todo: .(map[string]interface{})
-
 	v, ok := sample.Get("undefined")
 	if v != nil || ok != false {
-		t.Fatalf("Config.Get(%q) -> %v, %v (want %v, %v)",
+		t.Fatalf("Config.Get(%q) -> %#v, %#v (want %#v, %#v)",
 			"undefined", v, ok, nil, false)
 	}
 
-	v, ok = sample.Get("float64")
-	if v.(float64) != 123.45 || ok != true {
-		t.Fatalf("Config.Get(%q) -> %#v, %#v (want %#v, %#v)",
-			"float64", v, ok, float64(1.0), true)
+	raw := map[string]interface{}(sample)
+
+	for key, want := range raw {
+		v, ok := sample.Get(key)
+		if v != want || ok != true {
+			t.Fatalf("Config.Get(%q) -> %#v, %#v (want %#v, %#v)",
+				key, v, ok, want, true)
+		}
 	}
 }
 
