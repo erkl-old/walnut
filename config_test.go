@@ -1,6 +1,7 @@
 package walnut
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -54,48 +55,24 @@ func TestConfigGet(t *testing.T) {
 	}
 }
 
-var stringTests = []struct {
-	key   string
-	value string
-	err   error
-}{
-	{"undefined", "", ErrUndefined},
-	{"string", "hello", nil},
-	{"bool", "", ErrWrongType},
-	{"int64", "", ErrWrongType},
-	{"float64", "", ErrWrongType},
-	{"time", "", ErrWrongType},
-	{"duration", "", ErrWrongType},
-}
-
-func TestConfigString(t *testing.T) {
-	for _, test := range stringTests {
-		v, err := sample.String(test.key)
-		if v != test.value || err != test.err {
-			t.Errorf("Config.String(%q) -> %#v, %#v (want %#v, %#v)",
-				test.key, v, err, test.value, test.err)
-		}
-	}
-}
-
 var boolTests = []struct {
 	key   string
 	value bool
 	err   error
 }{
-	{"undefined", false, ErrUndefined},
-	{"string", false, ErrWrongType},
+	{"undefined", false, fmt.Errorf(_ErrUndefined, "undefined")},
+	{"string", false, fmt.Errorf(_ErrWrongType, "string", "string", "bool")},
 	{"bool", true, nil},
-	{"int64", false, ErrWrongType},
-	{"float64", false, ErrWrongType},
-	{"time", false, ErrWrongType},
-	{"duration", false, ErrWrongType},
+	{"int64", false, fmt.Errorf(_ErrWrongType, "int64", "int64", "bool")},
+	{"float64", false, fmt.Errorf(_ErrWrongType, "float64", "float64", "bool")},
+	{"time", false, fmt.Errorf(_ErrWrongType, "time", "time.Time", "bool")},
+	{"duration", false, fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "bool")},
 }
 
 func TestConfigBool(t *testing.T) {
 	for _, test := range boolTests {
 		v, err := sample.Bool(test.key)
-		if v != test.value || err != test.err {
+		if v != test.value || !isSameError(err, test.err) {
 			t.Errorf("Config.Bool(%q) -> %#v, %#v (want %#v, %#v)",
 				test.key, v, err, test.value, test.err)
 		}
@@ -107,19 +84,19 @@ var int64Tests = []struct {
 	value int64
 	err   error
 }{
-	{"undefined", 0, ErrUndefined},
-	{"string", 0, ErrWrongType},
-	{"bool", 0, ErrWrongType},
+	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
+	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "int64")},
+	{"bool", 0, fmt.Errorf(_ErrWrongType, "bool", "bool", "int64")},
 	{"int64", 12345, nil},
-	{"float64", 0, ErrWrongType},
-	{"time", 0, ErrWrongType},
-	{"duration", 0, ErrWrongType},
+	{"float64", 0, fmt.Errorf(_ErrWrongType, "float64", "float64", "int64")},
+	{"time", 0, fmt.Errorf(_ErrWrongType, "time", "time.Time", "int64")},
+	{"duration", 0, fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "int64")},
 }
 
 func TestConfigInt64(t *testing.T) {
 	for _, test := range int64Tests {
 		v, err := sample.Int64(test.key)
-		if v != test.value || err != test.err {
+		if v != test.value || !isSameError(err, test.err) {
 			t.Errorf("Config.Int64(%q) -> %#v, %#v (want %#v, %#v)",
 				test.key, v, err, test.value, test.err)
 		}
@@ -131,20 +108,44 @@ var float64Tests = []struct {
 	value float64
 	err   error
 }{
-	{"undefined", 0, ErrUndefined},
-	{"string", 0, ErrWrongType},
-	{"bool", 0, ErrWrongType},
-	{"int64", 0, ErrWrongType},
+	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
+	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "float64")},
+	{"bool", 0, fmt.Errorf(_ErrWrongType, "bool", "bool", "float64")},
+	{"int64", 0, fmt.Errorf(_ErrWrongType, "int64", "int64", "float64")},
 	{"float64", 123.45, nil},
-	{"time", 0, ErrWrongType},
-	{"duration", 0, ErrWrongType},
+	{"time", 0, fmt.Errorf(_ErrWrongType, "time", "time.Time", "float64")},
+	{"duration", 0, fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "float64")},
 }
 
 func TestConfigFloat64(t *testing.T) {
 	for _, test := range float64Tests {
 		v, err := sample.Float64(test.key)
-		if v != test.value || err != test.err {
+		if v != test.value || !isSameError(err, test.err) {
 			t.Errorf("Config.Float64(%q) -> %#v, %#v (want %#v, %#v)",
+				test.key, v, err, test.value, test.err)
+		}
+	}
+}
+
+var stringTests = []struct {
+	key   string
+	value string
+	err   error
+}{
+	{"undefined", "", fmt.Errorf(_ErrUndefined, "undefined")},
+	{"string", "hello", nil},
+	{"bool", "", fmt.Errorf(_ErrWrongType, "bool", "bool", "string")},
+	{"int64", "", fmt.Errorf(_ErrWrongType, "int64", "int64", "string")},
+	{"float64", "", fmt.Errorf(_ErrWrongType, "float64", "float64", "string")},
+	{"time", "", fmt.Errorf(_ErrWrongType, "time", "time.Time", "string")},
+	{"duration", "", fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "string")},
+}
+
+func TestConfigString(t *testing.T) {
+	for _, test := range stringTests {
+		v, err := sample.String(test.key)
+		if v != test.value || !isSameError(err, test.err) {
+			t.Errorf("Config.String(%q) -> %#v, %#v (want %#v, %#v)",
 				test.key, v, err, test.value, test.err)
 		}
 	}
@@ -155,19 +156,19 @@ var timeTests = []struct {
 	value time.Time
 	err   error
 }{
-	{"undefined", time.Time{}, ErrUndefined},
-	{"string", time.Time{}, ErrWrongType},
-	{"bool", time.Time{}, ErrWrongType},
-	{"int64", time.Time{}, ErrWrongType},
-	{"float64", time.Time{}, ErrWrongType},
+	{"undefined", time.Time{}, fmt.Errorf(_ErrUndefined, "undefined")},
+	{"string", time.Time{}, fmt.Errorf(_ErrWrongType, "string", "string", "time.Time")},
+	{"bool", time.Time{}, fmt.Errorf(_ErrWrongType, "bool", "bool", "time.Time")},
+	{"int64", time.Time{}, fmt.Errorf(_ErrWrongType, "int64", "int64", "time.Time")},
+	{"float64", time.Time{}, fmt.Errorf(_ErrWrongType, "float64", "float64", "time.Time")},
 	{"time", time.Date(2012, 12, 28, 15, 10, 15, 0, time.UTC), nil},
-	{"duration", time.Time{}, ErrWrongType},
+	{"duration", time.Time{}, fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "time.Time")},
 }
 
 func TestConfigTime(t *testing.T) {
 	for _, test := range timeTests {
 		v, err := sample.Time(test.key)
-		if v != test.value || err != test.err {
+		if !test.value.Equal(v) || !isSameError(err, test.err) {
 			t.Errorf("Config.Time(%q) -> %#v, %#v (want %#v, %#v)",
 				test.key, v, err, test.value, test.err)
 		}
@@ -179,21 +180,29 @@ var durationTests = []struct {
 	value time.Duration
 	err   error
 }{
-	{"undefined", 0, ErrUndefined},
-	{"string", 0, ErrWrongType},
-	{"bool", 0, ErrWrongType},
-	{"int64", 0, ErrWrongType},
-	{"float64", 0, ErrWrongType},
-	{"time", 0, ErrWrongType},
+	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
+	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "time.Duration")},
+	{"bool", 0, fmt.Errorf(_ErrWrongType, "bool", "bool", "time.Duration")},
+	{"int64", 0, fmt.Errorf(_ErrWrongType, "int64", "int64", "time.Duration")},
+	{"float64", 0, fmt.Errorf(_ErrWrongType, "float64", "float64", "time.Duration")},
+	{"time", 0, fmt.Errorf(_ErrWrongType, "time", "time.Time", "time.Duration")},
 	{"duration", 2 * time.Second, nil},
 }
 
 func TestConfigDuration(t *testing.T) {
 	for _, test := range durationTests {
 		v, err := sample.Duration(test.key)
-		if v != test.value || err != test.err {
+		if v != test.value || !isSameError(err, test.err) {
 			t.Errorf("Config.Duration(%q) -> %#v, %#v (want %#v, %#v)",
 				test.key, v, err, test.value, test.err)
 		}
 	}
+}
+
+// checks two errors for equality
+func isSameError(a, b error) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return a.Error() == b.Error()
 }

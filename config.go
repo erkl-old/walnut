@@ -1,14 +1,15 @@
 package walnut
 
 import (
-	"errors"
+	"fmt"
+	"reflect"
 	"sort"
 	"time"
 )
 
 var (
-	ErrUndefined = errors.New("key is not defined")
-	ErrWrongType = errors.New("key is not of the expected type")
+	_ErrUndefined = "%q is not defined"
+	_ErrWrongType = "%q is not the right type (is %s, not %s)"
 )
 
 type Config map[string]interface{}
@@ -34,33 +35,18 @@ func (c *Config) Get(key string) (interface{}, bool) {
 	return v, ok
 }
 
-// Retrieves a string value. Will return a non-nil error if the key
-// either hasn't been defined or is of a different type.
-func (c *Config) String(key string) (string, error) {
-	v, ok := (*c)[key]
-	if !ok {
-		return "", ErrUndefined
-	}
-
-	s, ok := v.(string)
-	if !ok {
-		return "", ErrWrongType
-	}
-
-	return s, nil
-}
-
 // Retrieves a bool value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Bool(key string) (bool, error) {
 	v, ok := (*c)[key]
 	if !ok {
-		return false, ErrUndefined
+		return false, fmt.Errorf(_ErrUndefined, key)
 	}
 
 	b, ok := v.(bool)
 	if !ok {
-		return false, ErrWrongType
+		typ := reflect.TypeOf(v).String()
+		return false, fmt.Errorf(_ErrWrongType, key, typ, "bool")
 	}
 
 	return b, nil
@@ -71,12 +57,13 @@ func (c *Config) Bool(key string) (bool, error) {
 func (c *Config) Int64(key string) (int64, error) {
 	v, ok := (*c)[key]
 	if !ok {
-		return 0, ErrUndefined
+		return 0, fmt.Errorf(_ErrUndefined, key)
 	}
 
 	i, ok := v.(int64)
 	if !ok {
-		return 0, ErrWrongType
+		typ := reflect.TypeOf(v).String()
+		return i, fmt.Errorf(_ErrWrongType, key, typ, "int64")
 	}
 
 	return i, nil
@@ -87,15 +74,33 @@ func (c *Config) Int64(key string) (int64, error) {
 func (c *Config) Float64(key string) (float64, error) {
 	v, ok := (*c)[key]
 	if !ok {
-		return 0, ErrUndefined
+		return 0, fmt.Errorf(_ErrUndefined, key)
 	}
 
 	f, ok := v.(float64)
 	if !ok {
-		return 0, ErrWrongType
+		typ := reflect.TypeOf(v).String()
+		return f, fmt.Errorf(_ErrWrongType, key, typ, "float64")
 	}
 
 	return f, nil
+}
+
+// Retrieves a string value. Will return a non-nil error if the key
+// either hasn't been defined or is of a different type.
+func (c *Config) String(key string) (string, error) {
+	v, ok := (*c)[key]
+	if !ok {
+		return "", fmt.Errorf(_ErrUndefined, key)
+	}
+
+	s, ok := v.(string)
+	if !ok {
+		typ := reflect.TypeOf(v).String()
+		return s, fmt.Errorf(_ErrWrongType, key, typ, "string")
+	}
+
+	return s, nil
 }
 
 // Retrieves a time value. Will return a non-nil error if the key
@@ -103,12 +108,13 @@ func (c *Config) Float64(key string) (float64, error) {
 func (c *Config) Time(key string) (time.Time, error) {
 	v, ok := (*c)[key]
 	if !ok {
-		return time.Time{}, ErrUndefined
+		return time.Time{}, fmt.Errorf(_ErrUndefined, key)
 	}
 
 	t, ok := v.(time.Time)
 	if !ok {
-		return time.Time{}, ErrWrongType
+		typ := reflect.TypeOf(v).String()
+		return t, fmt.Errorf(_ErrWrongType, key, typ, "time.Time")
 	}
 
 	return t, nil
@@ -119,12 +125,13 @@ func (c *Config) Time(key string) (time.Time, error) {
 func (c *Config) Duration(key string) (time.Duration, error) {
 	v, ok := (*c)[key]
 	if !ok {
-		return time.Duration(0), ErrUndefined
+		return time.Duration(0), fmt.Errorf(_ErrUndefined, key)
 	}
 
 	d, ok := v.(time.Duration)
 	if !ok {
-		return time.Duration(0), ErrWrongType
+		typ := reflect.TypeOf(v).String()
+		return d, fmt.Errorf(_ErrWrongType, key, typ, "time.Duration")
 	}
 
 	return d, nil
