@@ -93,11 +93,11 @@ var definitionTests = []struct {
 
 func TestDefinitions(t *testing.T) {
 	for _, test := range definitionTests {
-		defs, err := definitions([]byte(test.in))
+		defs, err := parse([]byte(test.in))
 
 		if !reflect.DeepEqual(err, test.err) ||
 			!reflect.DeepEqual(defs, test.defs) {
-			t.Errorf("definitions(%#v) -> %v, %#v (want %v, %#v)",
+			t.Errorf("parse(%#v) -> %v, %#v (want %v, %#v)",
 				test.in, defs, err, test.defs, test.err)
 		}
 	}

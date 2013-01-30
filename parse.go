@@ -20,7 +20,7 @@ type definition struct {
 // Generates a Config instance from a raw configuration file. Returns an
 // error if the source contains a syntax error.
 func Parse(in []byte) (Config, error) {
-	defs, err := definitions(in)
+	defs, err := parse(in)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func Parse(in []byte) (Config, error) {
 
 // Generates a set of definitions from a raw configuration file. Returns an
 // error if the source contains a syntax error.
-func definitions(in []byte) ([]definition, error) {
+func parse(in []byte) ([]definition, error) {
 	defs := make([]definition, 0)
 
 	stack := make([]string, 0)
