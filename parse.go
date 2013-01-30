@@ -7,6 +7,7 @@ import (
 
 const (
 	_ErrInvalidIndent = "invalid indentation on line %d"
+	_ErrInvalidKey    = "invalid key on line %d"
 	_ErrInvalidValue  = "unrecognized value on line %d: %q"
 )
 
@@ -64,6 +65,11 @@ func parse(in []byte) ([]definition, error) {
 
 		stack = append(stack, k)
 		levels = append(levels, s)
+
+		// make sure the line specifies a valid key
+		if k == "" {
+			return nil, fmt.Errorf(_ErrInvalidKey, i+1)
+		}
 
 		// does the current line contain an assignment?
 		if strings.ContainsRune(line, '=') {
