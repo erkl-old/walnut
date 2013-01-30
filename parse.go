@@ -37,59 +37,58 @@ func Parse(in []byte) (Config, error) {
 // Generates a set of definitions from a raw configuration file. Returns an
 // error if the source contains a syntax error.
 func parse(in []byte) ([]definition, error) {
+	lines := strings.Split(string(in), "\n")
 	defs := make([]definition, 0)
 
 	stack := make([]string, 0)
 	levels := make([]string, 0)
-	isLeaf := false
-
-	lines := strings.Split(string(in), "\n")
+	allowDeeper := true
 
 	for i, line := range lines {
 		if isEmpty(line) {
 			continue
 		}
 
-		s, k, v := components(line)
-		d := depth(levels, s)
+		space, key, value := components(line)
+		d := depth(levels, space)
 
-		if d < 0 || (d == len(levels) && isLeaf) {
+		if d < 0 || (d == len(levels) && !allowDeeper) {
 			return nil, fmt.Errorf(_ErrInvalidIndent, i+1)
 		}
 
-		// trim redundant indentation levels
+		// trim our history
 		if d < len(levels) {
 			stack = stack[:d]
 			levels = levels[:d]
 		}
 
-		stack = append(stack, k)
-		levels = append(levels, s)
+		stack = append(stack, key)
+		levels = append(levels, space)
 
 		// make sure the line specifies a valid key
-		if k == "" {
+		if key == "" {
 			return nil, fmt.Errorf(_ErrInvalidKey, i+1)
 		}
 
 		// does the current line contain an assignment?
 		if strings.ContainsRune(line, '=') {
-			value, ok := literal(v)
+			parsed, ok := literal(value)
 			if !ok {
-				return nil, fmt.Errorf(_ErrInvalidValue, i+1, v)
+				return nil, fmt.Errorf(_ErrInvalidValue, i+1, value)
 			}
 
 			defs = append(defs, definition{
 				key:  strings.Join(stack, "."),
-				val:  value,
-				raw:  v,
+				val:  parsed,
+				raw:  value,
 				line: i + 1,
 			})
 
-			isLeaf = true
+			allowDeeper = false
 			continue
 		}
 
-		isLeaf = false
+		allowDeeper = true
 	}
 
 	return defs, nil
