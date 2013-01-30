@@ -109,29 +109,30 @@ func components(line string) (space, key, value string) {
 	return
 }
 
-// ...
-func depth(parents []string, current string) int {
-	// ...
-	if len(current) == 0 {
+// Traverses a slice of previous indentation levels to see where the subject
+// indentation fits in. Returns an integer between 0 and len(context) on
+// success, or -1 if subject is not a valid indentation level in this context.
+func depth(context []string, subject string) int {
+	if subject == "" {
 		return 0
 	}
 
-	// ...
-	if len(parents) == 0 {
+	// non-empty indentation without any context is illegal
+	if len(context) == 0 {
 		return -1
 	}
 
-	for i, parent := range parents {
-		if !strings.HasPrefix(current, parent) {
+	for i, previous := range context {
+		if !strings.HasPrefix(subject, previous) {
 			return -1
 		}
-		if len(current) == len(parent) {
+		if len(subject) == len(previous) {
 			return i
 		}
 	}
 
-	// the current line is further indented than its parent
-	return len(parents)
+	// the subject line is further indented than its parent
+	return len(context)
 }
 
 // Tries to extract a literal value from a string.
