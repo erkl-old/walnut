@@ -92,7 +92,7 @@ func parse(in []byte) ([]definition, error) {
 // Splits a line into three components: 1) leading whitespace, 2) a key,
 // and optionally 3) a raw value.
 //
-//   components("  foo = bar")  // -> "  ", "foo ", " bar"
+//   components("  foo = bar")  // -> "  ", "foo", "bar"
 //   components("foo")          // -> "", "foo", ""
 func components(line string) (space, key, value string) {
 	for i := 0; i < len(line); i++ {
@@ -103,10 +103,10 @@ func components(line string) (space, key, value string) {
 	}
 
 	if eq := strings.IndexRune(line, '='); eq != -1 {
-		key = string(line[len(space):eq])
-		value = string(line[eq+1:])
+		key = strings.TrimRight(line[len(space):eq], " \t")
+		value = strings.TrimLeft(line[eq+1:], " \t")
 	} else {
-		key = string(line[len(space):])
+		key = strings.TrimRight(line[len(space):], " \t")
 	}
 
 	return
