@@ -35,6 +35,17 @@ func Parse(in []byte) (Config, error) {
 	return Config(m), nil
 }
 
+// Generates a Config instance from a raw configuration file. Panics if the
+// source contains a syntax error.
+func MustParse(in []byte) Config {
+	conf, err := Parse(in)
+	if err != nil {
+		panic(err)
+	}
+
+	return conf
+}
+
 // Generates a set of definitions from a raw configuration file. Returns an
 // error if the source contains a syntax error.
 func parse(in []byte) ([]definition, error) {
