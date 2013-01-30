@@ -65,8 +65,8 @@ func parse(in []byte) ([]definition, error) {
 		stack = append(stack, k)
 		levels = append(levels, s)
 
-		// contains an assignment
-		if v != "" {
+		// does the current line contain an assignment?
+		if strings.ContainsRune(line, '=') {
 			value, ok := literal(v)
 			if !ok {
 				return nil, fmt.Errorf(_ErrInvalidValue, i+1, v)
@@ -89,8 +89,11 @@ func parse(in []byte) ([]definition, error) {
 	return defs, nil
 }
 
-// Splits a line into three components; 1) leading whitespace, 2) a key
-// string, and 3) a raw value string.
+// Splits a line into three components: 1) leading whitespace, 2) a key,
+// and optionally 3) a raw value.
+//
+//   components("  foo = bar")  // -> "  ", "foo ", " bar"
+//   components("foo")          // -> "", "foo", ""
 func components(line string) (space, key, value string) {
 	for i := 0; i < len(line); i++ {
 		if line[i] != ' ' && line[i] != '\t' {
@@ -159,8 +162,8 @@ func literal(s string) (interface{}, bool) {
 	return nil, false
 }
 
-// Returns true if the line is completely made up of whitespace, or if all
-// non-whitespace characters appear after the comment rune ('#').
+// Returns true if the line is completely made up of whitespace, or if the
+// line contains only whitespace and a comment rune ('#').
 func isEmpty(s string) bool {
 	for i := 0; i < len(s); i++ {
 		b := s[i]
