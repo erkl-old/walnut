@@ -156,6 +156,11 @@ var definitionTests = []struct {
 		nil,
 		errors.New("unrecognized value on line 1: \"= 3\""),
 	},
+	{
+		"a = 1\na = 1",
+		nil,
+		errors.New("\"a\" redefined on line 2 (original on line 1)"),
+	},
 }
 
 func TestDefinitions(t *testing.T) {

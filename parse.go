@@ -9,6 +9,7 @@ const (
 	_ErrInvalidIndent = "invalid indentation on line %d"
 	_ErrInvalidKey    = "invalid key on line %d"
 	_ErrInvalidValue  = "unrecognized value on line %d: %q"
+	_ErrRedefined     = "%q redefined on line %d (original on line %d)"
 )
 
 type definition struct {
@@ -38,7 +39,9 @@ func Parse(in []byte) (Config, error) {
 // error if the source contains a syntax error.
 func parse(in []byte) ([]definition, error) {
 	lines := strings.Split(string(in), "\n")
+
 	defs := make([]definition, 0)
+	where := make(map[string]int)
 
 	stack := make([]string, 0)
 	levels := make([]string, 0)
@@ -49,8 +52,8 @@ func parse(in []byte) ([]definition, error) {
 			continue
 		}
 
-		space, key, value := components(line)
-		d := depth(levels, space)
+		s, k, v := components(line)
+		d := depth(levels, s)
 
 		if d < 0 || (d == len(levels) && !allowDeeper) {
 			return nil, fmt.Errorf(_ErrInvalidIndent, i+1)
@@ -62,25 +65,34 @@ func parse(in []byte) ([]definition, error) {
 			levels = levels[:d]
 		}
 
-		stack = append(stack, key)
-		levels = append(levels, space)
+		stack = append(stack, k)
+		levels = append(levels, s)
 
 		// make sure the line specifies a valid key
-		if key == "" {
+		if k == "" {
 			return nil, fmt.Errorf(_ErrInvalidKey, i+1)
 		}
 
 		// does the current line contain an assignment?
 		if strings.ContainsRune(line, '=') {
-			parsed, ok := literal(value)
+			key := strings.Join(stack, ".")
+
+			// make sure this key doesn't already hold a value
+			if prev := where[key]; prev != 0 {
+				return nil, fmt.Errorf(_ErrRedefined, key, i+1, prev)
+			}
+
+			where[key] = i+1
+
+			parsed, ok := literal(v)
 			if !ok {
-				return nil, fmt.Errorf(_ErrInvalidValue, i+1, value)
+				return nil, fmt.Errorf(_ErrInvalidValue, i+1, v)
 			}
 
 			defs = append(defs, definition{
-				key:  strings.Join(stack, "."),
+				key:  key,
 				val:  parsed,
-				raw:  value,
+				raw:  v,
 				line: i + 1,
 			})
 
