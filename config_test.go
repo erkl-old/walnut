@@ -79,6 +79,19 @@ func TestConfigBool(t *testing.T) {
 	}
 }
 
+func TestConfigRequireBool(t *testing.T) {
+	for _, test := range boolTests {
+		func() {
+			defer checkPanic(t, "Config.RequireBool", test.key, test.err)
+
+			v := sample.RequireBool(test.key)
+			if v != test.value {
+				t.Errorf("!")
+			}
+		}()
+	}
+}
+
 var int64Tests = []struct {
 	key   string
 	value int64
@@ -100,6 +113,19 @@ func TestConfigInt64(t *testing.T) {
 			t.Errorf("Config.Int64(%q) -> %#v, %#v (want %#v, %#v)",
 				test.key, v, err, test.value, test.err)
 		}
+	}
+}
+
+func TestConfigRequireInt64(t *testing.T) {
+	for _, test := range int64Tests {
+		func() {
+			defer checkPanic(t, "Config.RequireInt64", test.key, test.err)
+
+			v := sample.RequireInt64(test.key)
+			if v != test.value {
+				t.Errorf("!")
+			}
+		}()
 	}
 }
 
@@ -127,6 +153,19 @@ func TestConfigFloat64(t *testing.T) {
 	}
 }
 
+func TestConfigRequireFloat64(t *testing.T) {
+	for _, test := range float64Tests {
+		func() {
+			defer checkPanic(t, "Config.RequireFloat64", test.key, test.err)
+
+			v := sample.RequireFloat64(test.key)
+			if v != test.value {
+				t.Errorf("!")
+			}
+		}()
+	}
+}
+
 var stringTests = []struct {
 	key   string
 	value string
@@ -148,6 +187,19 @@ func TestConfigString(t *testing.T) {
 			t.Errorf("Config.String(%q) -> %#v, %#v (want %#v, %#v)",
 				test.key, v, err, test.value, test.err)
 		}
+	}
+}
+
+func TestConfigRequireString(t *testing.T) {
+	for _, test := range stringTests {
+		func() {
+			defer checkPanic(t, "Config.RequireString", test.key, test.err)
+
+			v := sample.RequireString(test.key)
+			if v != test.value {
+				t.Errorf("")
+			}
+		}()
 	}
 }
 
@@ -175,6 +227,19 @@ func TestConfigTime(t *testing.T) {
 	}
 }
 
+func TestConfigRequireTime(t *testing.T) {
+	for _, test := range timeTests {
+		func() {
+			defer checkPanic(t, "Config.RequireTime", test.key, test.err)
+
+			v := sample.RequireTime(test.key)
+			if v != test.value {
+				t.Errorf("")
+			}
+		}()
+	}
+}
+
 var durationTests = []struct {
 	key   string
 	value time.Duration
@@ -199,10 +264,34 @@ func TestConfigDuration(t *testing.T) {
 	}
 }
 
+func TestConfigRequireDuration(t *testing.T) {
+	for _, test := range durationTests {
+		func() {
+			defer checkPanic(t, "Config.RequireDuration", test.key, test.err)
+
+			v := sample.RequireDuration(test.key)
+			if v != test.value {
+				t.Errorf("")
+			}
+		}()
+	}
+}
+
 // checks two errors for equality
 func isSameError(a, b error) bool {
 	if a == nil || b == nil {
 		return a == b
 	}
 	return a.Error() == b.Error()
+}
+
+func checkPanic(t *testing.T, method, key string, want error) {
+	r := recover()
+
+	switch {
+	case r == nil && want != nil:
+		fallthrough
+	case r != nil && !isSameError(r.(error), want):
+		t.Errorf(method+"(%q) recover -> %#v (want %#v)", key, r, want)
+	}
 }

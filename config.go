@@ -52,6 +52,16 @@ func (c *Config) Bool(key string) (bool, error) {
 	return b, nil
 }
 
+// Retrieves a bool value. Panics if it hasn't been defined, or is of a
+// different type.
+func (c *Config) RequireBool(key string) bool {
+	b, err := c.Bool(key)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
 // Retrieves an integer value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Int64(key string) (int64, error) {
@@ -67,6 +77,16 @@ func (c *Config) Int64(key string) (int64, error) {
 	}
 
 	return i, nil
+}
+
+// Retrieves a bool value. Panics if it hasn't been defined, or is of a
+// different type.
+func (c *Config) RequireInt64(key string) int64 {
+	i, err := c.Int64(key)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }
 
 // Retrieves a float value. Will return a non-nil error if the key
@@ -86,6 +106,16 @@ func (c *Config) Float64(key string) (float64, error) {
 	return f, nil
 }
 
+// Retrieves a bool value. Panics if it hasn't been defined, or is of a
+// different type.
+func (c *Config) RequireFloat64(key string) float64 {
+	f, err := c.Float64(key)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
+
 // Retrieves a string value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) String(key string) (string, error) {
@@ -101,6 +131,16 @@ func (c *Config) String(key string) (string, error) {
 	}
 
 	return s, nil
+}
+
+// Retrieves a bool value. Panics if it hasn't been defined, or is of a
+// different type.
+func (c *Config) RequireString(key string) string {
+	s, err := c.String(key)
+	if err != nil {
+		panic(err)
+	}
+	return s
 }
 
 // Retrieves a time value. Will return a non-nil error if the key
@@ -120,6 +160,16 @@ func (c *Config) Time(key string) (time.Time, error) {
 	return t, nil
 }
 
+// Retrieves a time value. Panics if it hasn't been defined, or is of a
+// different type.
+func (c *Config) RequireTime(key string) time.Time {
+	t, err := c.Time(key)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
 // Retrieves a duration value. Will return a non-nil error if the key
 // either hasn't been defined or is of a different type.
 func (c *Config) Duration(key string) (time.Duration, error) {
@@ -135,4 +185,14 @@ func (c *Config) Duration(key string) (time.Duration, error) {
 	}
 
 	return d, nil
+}
+
+// Retrieves a duration value. Panics if it hasn't been defined, or is of a
+// different type.
+func (c *Config) RequireDuration(key string) time.Duration {
+	d, err := c.Duration(key)
+	if err != nil {
+		panic(err)
+	}
+	return d
 }
