@@ -1,3 +1,25 @@
-walnut implements a sensible configuration format for Go.
 
-See godoc.org/github.com/wub/walnut for details.
+   walnut is a sensible configuration format, designed from the
+   ground up with readability and Go compatibility in mind.
+
+   Using walnut might look something like this:
+
+     ./conf.wn
+
+         # application configuration file
+         http
+           host = "localhost"
+           port = 8080
+
+         cookie.ttl = 48h 30m
+
+     ./main.go
+
+         bytes, _ := ioutil.ReadFile("./conf.wn")
+
+         conf := walnut.MustParse(bytes)
+         port := conf.RequireInt64("http.port")
+
+
+   See `go doc github.com/wub/walnut` for specifics.
+
