@@ -2,6 +2,8 @@ package walnut
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
 
@@ -19,6 +21,44 @@ type definition struct {
 	line int
 }
 
+// Parses a configuration file. Panics reading fails, or if the file
+// contains a syntax error.
+func Load(path string) Config {
+	in := make([]byte, 2048)
+	r := 0
+
+	f, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	for {
+		if len(in)-r < 512 {
+			next := make([]byte, len(in)*2)
+			copy(next, in[:r])
+			in = next
+		}
+
+		n, err := f.Read(in[r:])
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			panic(err)
+		}
+
+		r += n
+	}
+
+	conf, err := Parse(in[:r])
+	if err != nil {
+		panic(err)
+	}
+
+	return conf
+}
+
 // Generates a Config instance from a raw configuration file. Returns an
 // error if the source contains a syntax error.
 func Parse(in []byte) (Config, error) {
@@ -33,17 +73,6 @@ func Parse(in []byte) (Config, error) {
 	}
 
 	return Config(m), nil
-}
-
-// Generates a Config instance from a raw configuration file. Panics if the
-// source contains a syntax error.
-func MustParse(in []byte) Config {
-	conf, err := Parse(in)
-	if err != nil {
-		panic(err)
-	}
-
-	return conf
 }
 
 // Generates a set of definitions from a raw configuration file. Returns an
