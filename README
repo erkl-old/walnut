@@ -15,9 +15,7 @@
 
      ./main.go
 
-         bytes, _ := ioutil.ReadFile("./conf.wn")
-
-         conf := walnut.MustParse(bytes)
+         conf := walnut.Load("./conf.wn")
          port := conf.RequireInt64("http.port")
 
 
