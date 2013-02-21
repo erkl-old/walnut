@@ -62,7 +62,7 @@ func Load(path string) Config {
 // Generates a Config instance from a raw configuration file. Returns an
 // error if the source contains a syntax error.
 func Parse(in []byte) (Config, error) {
-	defs, err := parse(in)
+	defs, err := process(in)
 	if err != nil {
 		return nil, err
 	}
@@ -75,9 +75,9 @@ func Parse(in []byte) (Config, error) {
 	return Config(m), nil
 }
 
-// Generates a set of definitions from a raw configuration file. Returns an
+// Processes configuration data, generating a set of definitions. Returns an
 // error if the source contains a syntax error.
-func parse(in []byte) ([]definition, error) {
+func process(in []byte) ([]definition, error) {
 	lines := strings.Split(string(in), "\n")
 
 	defs := make([]definition, 0)
@@ -92,7 +92,7 @@ func parse(in []byte) ([]definition, error) {
 			continue
 		}
 
-		s, k, v := components(line)
+		s, k, v := split(line)
 		d := depth(levels, s)
 
 		if d < 0 || (d == len(levels) && !allowDeeper) {
@@ -117,14 +117,14 @@ func parse(in []byte) ([]definition, error) {
 		if strings.ContainsRune(line, '=') {
 			key := strings.Join(stack, ".")
 
-			// make sure this key doesn't already hold a value
+			// make sure this key hasn't already been defined
 			if prev := where[key]; prev != 0 {
 				return nil, fmt.Errorf(_ErrRedefined, key, i+1, prev)
 			}
 
 			where[key] = i + 1
 
-			parsed, ok := literal(v)
+			parsed, ok := readLiteral(v)
 			if !ok {
 				return nil, fmt.Errorf(_ErrInvalidValue, i+1, v)
 			}
@@ -146,12 +146,9 @@ func parse(in []byte) ([]definition, error) {
 	return defs, nil
 }
 
-// Splits a line into three components: 1) leading whitespace, 2) a key,
-// and optionally 3) a raw value.
-//
-//   components("  foo = bar")  // -> "  ", "foo", "bar"
-//   components("foo")          // -> "", "foo", ""
-func components(line string) (space, key, value string) {
+// Splits a line into three components: leading whitespace, a key,
+// and optionally a raw value.
+func split(line string) (space, key, value string) {
 	for i := 0; i < len(line); i++ {
 		if line[i] != ' ' && line[i] != '\t' {
 			break
@@ -196,7 +193,7 @@ func depth(context []string, subject string) int {
 }
 
 // Tries to extract a literal value from a string.
-func literal(s string) (interface{}, bool) {
+func readLiteral(s string) (interface{}, bool) {
 	if v, n := readBool(s); n != 0 && isEmpty(s[n:]) {
 		return v, true
 	}

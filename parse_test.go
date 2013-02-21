@@ -163,13 +163,13 @@ var definitionTests = []struct {
 	},
 }
 
-func TestDefinitions(t *testing.T) {
+func TestProcess(t *testing.T) {
 	for _, test := range definitionTests {
-		defs, err := parse([]byte(test.in))
+		defs, err := process([]byte(test.in))
 
 		if !reflect.DeepEqual(err, test.err) ||
 			!reflect.DeepEqual(defs, test.defs) {
-			t.Errorf("parse(%#v) -> %v, %#v (want %v, %#v)",
+			t.Errorf("process(%#v) -> %v, %#v (want %v, %#v)",
 				test.in, defs, err, test.defs, test.err)
 		}
 	}
