@@ -122,7 +122,7 @@ func parse(in []byte) ([]definition, error) {
 				return nil, fmt.Errorf(_ErrRedefined, key, i+1, prev)
 			}
 
-			where[key] = i+1
+			where[key] = i + 1
 
 			parsed, ok := literal(v)
 			if !ok {
