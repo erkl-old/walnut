@@ -73,9 +73,9 @@ var definitionTests = []struct {
 		nil,
 	},
 	{
-		"bool = true",
+		"bool = on",
 		[]definition{
-			{"bool", true, "true", 1},
+			{"bool", true, "on", 1},
 		},
 		nil,
 	},
