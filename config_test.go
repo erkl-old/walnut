@@ -6,13 +6,16 @@ import (
 	"time"
 )
 
-var sample = Config{
-	"string":   "hello",
-	"bool":     true,
-	"int64":    int64(12345),
-	"float64":  float64(123.45),
-	"time":     time.Date(2012, 12, 28, 15, 10, 15, 0, time.UTC),
-	"duration": 2 * time.Second,
+var sample = &config{
+	"",
+	map[string]interface{}{
+		"string":   "hello",
+		"bool":     true,
+		"int64":    int64(12345),
+		"float64":  float64(123.45),
+		"time":     time.Date(2012, 12, 28, 15, 10, 15, 0, time.UTC),
+		"duration": 2 * time.Second,
+	},
 }
 
 func TestConfigKeys(t *testing.T) {
@@ -44,7 +47,7 @@ func TestConfigGet(t *testing.T) {
 			"undefined", v, ok, nil, false)
 	}
 
-	raw := map[string]interface{}(sample)
+	raw := map[string]interface{}(sample.data)
 
 	for key, want := range raw {
 		v, ok := sample.Get(key)
@@ -56,9 +59,9 @@ func TestConfigGet(t *testing.T) {
 }
 
 var boolTests = []struct {
-	key   string
-	value bool
-	err   error
+	k   string
+	v   bool
+	err error
 }{
 	{"undefined", false, fmt.Errorf(_ErrUndefined, "undefined")},
 	{"string", false, fmt.Errorf(_ErrWrongType, "string", "string", "bool")},
@@ -71,31 +74,20 @@ var boolTests = []struct {
 
 func TestConfigBool(t *testing.T) {
 	for _, test := range boolTests {
-		v, err := sample.Bool(test.key)
-		if v != test.value || !isSameError(err, test.err) {
-			t.Errorf("Config.Bool(%q) -> %#v, %#v (want %#v, %#v)",
-				test.key, v, err, test.value, test.err)
-		}
-	}
-}
-
-func TestConfigRequireBool(t *testing.T) {
-	for _, test := range boolTests {
 		func() {
-			defer checkPanic(t, "Config.RequireBool", test.key, test.err)
-
-			v := sample.RequireBool(test.key)
-			if v != test.value {
-				t.Errorf("!")
+			defer shouldPanic(t, "Config.Bool", test.k, test.err)
+			if v := sample.Bool(test.k); v != test.v {
+				t.Errorf("Config.Bool(%q) -> %#v (want %#v)",
+					test.k, v, test.v)
 			}
 		}()
 	}
 }
 
 var int64Tests = []struct {
-	key   string
-	value int64
-	err   error
+	k   string
+	v   int64
+	err error
 }{
 	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
 	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "int64")},
@@ -108,31 +100,20 @@ var int64Tests = []struct {
 
 func TestConfigInt64(t *testing.T) {
 	for _, test := range int64Tests {
-		v, err := sample.Int64(test.key)
-		if v != test.value || !isSameError(err, test.err) {
-			t.Errorf("Config.Int64(%q) -> %#v, %#v (want %#v, %#v)",
-				test.key, v, err, test.value, test.err)
-		}
-	}
-}
-
-func TestConfigRequireInt64(t *testing.T) {
-	for _, test := range int64Tests {
 		func() {
-			defer checkPanic(t, "Config.RequireInt64", test.key, test.err)
-
-			v := sample.RequireInt64(test.key)
-			if v != test.value {
-				t.Errorf("!")
+			defer shouldPanic(t, "Config.Int64", test.k, test.err)
+			if v := sample.Int64(test.k); v != test.v {
+				t.Errorf("Config.Int64(%q) -> %#v (want %#v)",
+					test.k, v, test.v)
 			}
 		}()
 	}
 }
 
 var float64Tests = []struct {
-	key   string
-	value float64
-	err   error
+	k   string
+	v   float64
+	err error
 }{
 	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
 	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "float64")},
@@ -145,31 +126,20 @@ var float64Tests = []struct {
 
 func TestConfigFloat64(t *testing.T) {
 	for _, test := range float64Tests {
-		v, err := sample.Float64(test.key)
-		if v != test.value || !isSameError(err, test.err) {
-			t.Errorf("Config.Float64(%q) -> %#v, %#v (want %#v, %#v)",
-				test.key, v, err, test.value, test.err)
-		}
-	}
-}
-
-func TestConfigRequireFloat64(t *testing.T) {
-	for _, test := range float64Tests {
 		func() {
-			defer checkPanic(t, "Config.RequireFloat64", test.key, test.err)
-
-			v := sample.RequireFloat64(test.key)
-			if v != test.value {
-				t.Errorf("!")
+			defer shouldPanic(t, "Config.Float64", test.k, test.err)
+			if v := sample.Float64(test.k); v != test.v {
+				t.Errorf("Config.Float64(%q) -> %#v (want %#v)",
+					test.k, v, test.v)
 			}
 		}()
 	}
 }
 
 var stringTests = []struct {
-	key   string
-	value string
-	err   error
+	k   string
+	v   string
+	err error
 }{
 	{"undefined", "", fmt.Errorf(_ErrUndefined, "undefined")},
 	{"string", "hello", nil},
@@ -182,31 +152,20 @@ var stringTests = []struct {
 
 func TestConfigString(t *testing.T) {
 	for _, test := range stringTests {
-		v, err := sample.String(test.key)
-		if v != test.value || !isSameError(err, test.err) {
-			t.Errorf("Config.String(%q) -> %#v, %#v (want %#v, %#v)",
-				test.key, v, err, test.value, test.err)
-		}
-	}
-}
-
-func TestConfigRequireString(t *testing.T) {
-	for _, test := range stringTests {
 		func() {
-			defer checkPanic(t, "Config.RequireString", test.key, test.err)
-
-			v := sample.RequireString(test.key)
-			if v != test.value {
-				t.Errorf("")
+			defer shouldPanic(t, "Config.String", test.k, test.err)
+			if v := sample.String(test.k); v != test.v {
+				t.Errorf("Config.String(%q) -> %#v (want %#v)",
+					test.k, v, test.v)
 			}
 		}()
 	}
 }
 
 var timeTests = []struct {
-	key   string
-	value time.Time
-	err   error
+	k   string
+	v   time.Time
+	err error
 }{
 	{"undefined", time.Time{}, fmt.Errorf(_ErrUndefined, "undefined")},
 	{"string", time.Time{}, fmt.Errorf(_ErrWrongType, "string", "string", "time.Time")},
@@ -219,31 +178,20 @@ var timeTests = []struct {
 
 func TestConfigTime(t *testing.T) {
 	for _, test := range timeTests {
-		v, err := sample.Time(test.key)
-		if !test.value.Equal(v) || !isSameError(err, test.err) {
-			t.Errorf("Config.Time(%q) -> %#v, %#v (want %#v, %#v)",
-				test.key, v, err, test.value, test.err)
-		}
-	}
-}
-
-func TestConfigRequireTime(t *testing.T) {
-	for _, test := range timeTests {
 		func() {
-			defer checkPanic(t, "Config.RequireTime", test.key, test.err)
-
-			v := sample.RequireTime(test.key)
-			if v != test.value {
-				t.Errorf("")
+			defer shouldPanic(t, "Config.Time", test.k, test.err)
+			if v := sample.Time(test.k); v != test.v {
+				t.Errorf("Config.Time(%q) -> %#v (want %#v)",
+					test.k, v, test.v)
 			}
 		}()
 	}
 }
 
 var durationTests = []struct {
-	key   string
-	value time.Duration
-	err   error
+	k   string
+	v   time.Duration
+	err error
 }{
 	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
 	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "time.Duration")},
@@ -256,42 +204,29 @@ var durationTests = []struct {
 
 func TestConfigDuration(t *testing.T) {
 	for _, test := range durationTests {
-		v, err := sample.Duration(test.key)
-		if v != test.value || !isSameError(err, test.err) {
-			t.Errorf("Config.Duration(%q) -> %#v, %#v (want %#v, %#v)",
-				test.key, v, err, test.value, test.err)
-		}
-	}
-}
-
-func TestConfigRequireDuration(t *testing.T) {
-	for _, test := range durationTests {
 		func() {
-			defer checkPanic(t, "Config.RequireDuration", test.key, test.err)
-
-			v := sample.RequireDuration(test.key)
-			if v != test.value {
-				t.Errorf("")
+			defer shouldPanic(t, "Config.Duration", test.k, test.err)
+			if v := sample.Duration(test.k); v != test.v {
+				t.Errorf("Config.Duration(%q) -> %#v (want %#v)",
+					test.k, v, test.v)
 			}
 		}()
 	}
 }
 
-// checks two errors for equality
-func isSameError(a, b error) bool {
-	if a == nil || b == nil {
-		return a == b
-	}
-	return a.Error() == b.Error()
-}
-
-func checkPanic(t *testing.T, method, key string, want error) {
+func shouldPanic(t *testing.T, method, key string, want error) {
 	r := recover()
-
 	switch {
 	case r == nil && want != nil:
 		fallthrough
 	case r != nil && !isSameError(r.(error), want):
 		t.Errorf(method+"(%q) recover -> %#v (want %#v)", key, r, want)
 	}
+}
+
+func isSameError(a, b error) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return a.Error() == b.Error()
 }

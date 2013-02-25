@@ -72,7 +72,7 @@ func Parse(in []byte) (Config, error) {
 		m[def.key] = def.val
 	}
 
-	return Config(m), nil
+	return &config{"", m}, nil
 }
 
 // Processes configuration data, generating a set of definitions. Returns an
