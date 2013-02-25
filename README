@@ -16,7 +16,7 @@
      ./main.go
 
          conf := walnut.Load("./conf.wn")
-         port := conf.RequireInt64("http.port")
+         port := conf.Int64("http.port")
 
 
    See `go doc github.com/wub/walnut` for specifics.
