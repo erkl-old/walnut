@@ -15,7 +15,21 @@ var sample = &config{
 		"float64":  float64(123.45),
 		"time":     time.Date(2012, 12, 28, 15, 10, 15, 0, time.UTC),
 		"duration": 2 * time.Second,
+		"foo.def":  "hello",
+		"foo.abc":  "bye",
 	},
+}
+
+func TestConfigSelect(t *testing.T) {
+	v, _ := sample.Select("foo").Get("def")
+	if v != sample.data["foo.def"] {
+		t.Errorf(`Config.Select("foo").Get("def") != Config.Get("foo.def")`)
+	}
+
+	keys := sample.Select("foo").Keys()
+	if len(keys) != 2 || keys[0] != "abc" || keys[1] != "def" {
+		t.Errorf(`Config.Select("foo").Keys() != []{"abc","def"}`)
+	}
 }
 
 func TestConfigKeys(t *testing.T) {
@@ -24,6 +38,8 @@ func TestConfigKeys(t *testing.T) {
 		"bool",
 		"duration",
 		"float64",
+		"foo.abc",
+		"foo.def",
 		"int64",
 		"string",
 		"time",
