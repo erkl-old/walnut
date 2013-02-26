@@ -2,8 +2,7 @@ package walnut
 
 import (
 	"fmt"
-	"io"
-	"os"
+	"io/ioutil"
 	"strings"
 )
 
@@ -24,34 +23,12 @@ type definition struct {
 // Parses a configuration file. Panics reading fails, or if the file
 // contains a syntax error.
 func Load(path string) Config {
-	in := make([]byte, 2048)
-	r := 0
-
-	f, err := os.Open(path)
+	in, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
 
-	for {
-		if len(in)-r < 512 {
-			next := make([]byte, len(in)*2)
-			copy(next, in[:r])
-			in = next
-		}
-
-		n, err := f.Read(in[r:])
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			panic(err)
-		}
-
-		r += n
-	}
-
-	conf, err := Parse(in[:r])
+	conf, err := Parse(in)
 	if err != nil {
 		panic(err)
 	}
