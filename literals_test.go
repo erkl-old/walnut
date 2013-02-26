@@ -10,10 +10,10 @@ var readBoolTests = []struct {
 	v  bool
 	n  int
 }{
-	{"true", false, 0},
-	{"\t false", false, 0},
-	{"  on ", true, 4},
-	{"offfoo", false, 3},
+	{"true", true, 4},
+	{"\t false", false, 7},
+	{"  on ", false, 0},
+	{"offfoo", false, 0},
 	{" yes ", false, 0},
 	{"\t \tno", false, 0},
 	{"blurgh", false, 0},

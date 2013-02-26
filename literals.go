@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	_TruthyRegexp = regexp.MustCompile(`^[ \t]*on`)
-	_FalsyRegexp  = regexp.MustCompile(`^[ \t]*off`)
+	_TruthyRegexp = regexp.MustCompile(`^[ \t]*true`)
+	_FalsyRegexp  = regexp.MustCompile(`^[ \t]*false`)
 	_IntRegexp    = regexp.MustCompile(`^[ \t]*([\+\-]?\d+)`)
 	_FloatRegexp  = regexp.MustCompile(`^[ \t]*([\+\-]?\d+\.\d+)`)
 	_TimeRegexp   = regexp.MustCompile(
