@@ -13,9 +13,16 @@ const (
 	errWrongType = "%q is not the right type (is %s, not %s)"
 )
 
+type Filter interface {
+	MatchString(s string) bool
+}
+
 type Config interface {
 	// Returns a list of all defined keys, sorted lexographically.
 	Keys() []string
+
+	// Returns all keys matching the provided filter, sorted lexographically.
+	Find(filter Filter) []string
 
 	// Selects a subset of the Config. All read operations performed on
 	// the returned Config will be prefixed with the prefix.
@@ -46,6 +53,25 @@ func (c *config) Keys() []string {
 	for key, _ := range c.data {
 		if strings.HasPrefix(key, c.prefix) {
 			keys = append(keys, key[len(c.prefix):])
+		}
+	}
+
+	sort.Strings(keys)
+
+	return keys
+}
+
+func (c *config) Find(filter Filter) []string {
+	keys := make([]string, 0)
+
+	for key, _ := range c.data {
+		if !strings.HasPrefix(key, c.prefix) {
+			continue
+		}
+
+		key = key[len(c.prefix):]
+		if filter.MatchString(key) {
+			keys = append(keys, key)
 		}
 	}
 
