@@ -1,6 +1,4 @@
-// walnut is a sensible configuration format designed with readability and
-// compatibility with Go in mind. In addition to the expected primitives, it
-// also provides first class support for durations and timestamps.
+// walnut is a sensible configuration format.
 //
 //
 // Comments

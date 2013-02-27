@@ -1,8 +1,5 @@
 
-   walnut is a sensible configuration format designed from the
-   ground up with readability and Go compatibility in mind.
-
-   Using walnut might look something like this:
+   walnut is a sensible configuration file format.
 
      ./conf.wn
 
