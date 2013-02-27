@@ -13,7 +13,7 @@ const (
 	errWrongType = "%q is not the right type (is %s, not %s)"
 )
 
-type Filter interface {
+type Matcher interface {
 	MatchString(s string) bool
 }
 
@@ -22,7 +22,7 @@ type Config interface {
 	Keys() []string
 
 	// Returns all keys matching the provided filter, sorted lexographically.
-	Find(filter Filter) []string
+	Match(filter Matcher) []string
 
 	// Selects a subset of the Config. All read operations performed on
 	// the returned Config will be prefixed with the prefix.
@@ -61,7 +61,7 @@ func (c *config) Keys() []string {
 	return keys
 }
 
-func (c *config) Find(filter Filter) []string {
+func (c *config) Match(filter Matcher) []string {
 	keys := make([]string, 0)
 
 	for key, _ := range c.data {

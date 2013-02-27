@@ -2,6 +2,7 @@ package walnut
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -51,6 +52,17 @@ func TestConfigKeys(t *testing.T) {
 
 	if !eq(got, want) {
 		t.Errorf("sample.Keys():")
+		t.Errorf("   got %v", got)
+		t.Errorf("  want %v", want)
+	}
+}
+
+func TestConfigMatch(t *testing.T) {
+	got := sample.Match(regexp.MustCompile("foo"))
+	want := []string{"foo.abc", "foo.def"}
+
+	if !eq(got, want) {
+		t.Errorf("sample.Match(regexp.MustCompile(\"foo\")):")
 		t.Errorf("   got %v", got)
 		t.Errorf("  want %v", want)
 	}
