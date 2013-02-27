@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-var (
-	_ErrUndefined = "%q is not defined"
-	_ErrWrongType = "%q is not the right type (is %s, not %s)"
+const (
+	errUndefined = "%q is not defined"
+	errWrongType = "%q is not the right type (is %s, not %s)"
 )
 
 type Config interface {
@@ -66,13 +66,13 @@ func (c *config) Get(key string) (interface{}, bool) {
 func (c *config) Bool(key string) bool {
 	v, ok := c.data[c.prefix+key]
 	if !ok {
-		panic(fmt.Errorf(_ErrUndefined, key))
+		panic(fmt.Errorf(errUndefined, key))
 	}
 
 	b, ok := v.(bool)
 	if !ok {
 		typ := reflect.TypeOf(v).String()
-		panic(fmt.Errorf(_ErrWrongType, key, typ, "bool"))
+		panic(fmt.Errorf(errWrongType, key, typ, "bool"))
 	}
 
 	return b
@@ -81,13 +81,13 @@ func (c *config) Bool(key string) bool {
 func (c *config) Int64(key string) int64 {
 	v, ok := c.data[c.prefix+key]
 	if !ok {
-		panic(fmt.Errorf(_ErrUndefined, key))
+		panic(fmt.Errorf(errUndefined, key))
 	}
 
 	i, ok := v.(int64)
 	if !ok {
 		typ := reflect.TypeOf(v).String()
-		panic(fmt.Errorf(_ErrWrongType, key, typ, "int64"))
+		panic(fmt.Errorf(errWrongType, key, typ, "int64"))
 	}
 
 	return i
@@ -96,13 +96,13 @@ func (c *config) Int64(key string) int64 {
 func (c *config) Float64(key string) float64 {
 	v, ok := c.data[c.prefix+key]
 	if !ok {
-		panic(fmt.Errorf(_ErrUndefined, key))
+		panic(fmt.Errorf(errUndefined, key))
 	}
 
 	f, ok := v.(float64)
 	if !ok {
 		typ := reflect.TypeOf(v).String()
-		panic(fmt.Errorf(_ErrWrongType, key, typ, "float64"))
+		panic(fmt.Errorf(errWrongType, key, typ, "float64"))
 	}
 
 	return f
@@ -111,13 +111,13 @@ func (c *config) Float64(key string) float64 {
 func (c *config) String(key string) string {
 	v, ok := c.data[c.prefix+key]
 	if !ok {
-		panic(fmt.Errorf(_ErrUndefined, key))
+		panic(fmt.Errorf(errUndefined, key))
 	}
 
 	s, ok := v.(string)
 	if !ok {
 		typ := reflect.TypeOf(v).String()
-		panic(fmt.Errorf(_ErrWrongType, key, typ, "string"))
+		panic(fmt.Errorf(errWrongType, key, typ, "string"))
 	}
 
 	return s
@@ -126,13 +126,13 @@ func (c *config) String(key string) string {
 func (c *config) Time(key string) time.Time {
 	v, ok := c.data[c.prefix+key]
 	if !ok {
-		panic(fmt.Errorf(_ErrUndefined, key))
+		panic(fmt.Errorf(errUndefined, key))
 	}
 
 	t, ok := v.(time.Time)
 	if !ok {
 		typ := reflect.TypeOf(v).String()
-		panic(fmt.Errorf(_ErrWrongType, key, typ, "time.Time"))
+		panic(fmt.Errorf(errWrongType, key, typ, "time.Time"))
 	}
 
 	return t
@@ -141,13 +141,13 @@ func (c *config) Time(key string) time.Time {
 func (c *config) Duration(key string) time.Duration {
 	v, ok := c.data[c.prefix+key]
 	if !ok {
-		panic(fmt.Errorf(_ErrUndefined, key))
+		panic(fmt.Errorf(errUndefined, key))
 	}
 
 	d, ok := v.(time.Duration)
 	if !ok {
 		typ := reflect.TypeOf(v).String()
-		panic(fmt.Errorf(_ErrWrongType, key, typ, "time.Duration"))
+		panic(fmt.Errorf(errWrongType, key, typ, "time.Duration"))
 	}
 
 	return d

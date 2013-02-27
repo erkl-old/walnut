@@ -79,13 +79,13 @@ var boolTests = []struct {
 	v   bool
 	err error
 }{
-	{"undefined", false, fmt.Errorf(_ErrUndefined, "undefined")},
-	{"string", false, fmt.Errorf(_ErrWrongType, "string", "string", "bool")},
+	{"undefined", false, fmt.Errorf(errUndefined, "undefined")},
+	{"string", false, fmt.Errorf(errWrongType, "string", "string", "bool")},
 	{"bool", true, nil},
-	{"int64", false, fmt.Errorf(_ErrWrongType, "int64", "int64", "bool")},
-	{"float64", false, fmt.Errorf(_ErrWrongType, "float64", "float64", "bool")},
-	{"time", false, fmt.Errorf(_ErrWrongType, "time", "time.Time", "bool")},
-	{"duration", false, fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "bool")},
+	{"int64", false, fmt.Errorf(errWrongType, "int64", "int64", "bool")},
+	{"float64", false, fmt.Errorf(errWrongType, "float64", "float64", "bool")},
+	{"time", false, fmt.Errorf(errWrongType, "time", "time.Time", "bool")},
+	{"duration", false, fmt.Errorf(errWrongType, "duration", "time.Duration", "bool")},
 }
 
 func TestConfigBool(t *testing.T) {
@@ -105,13 +105,13 @@ var int64Tests = []struct {
 	v   int64
 	err error
 }{
-	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
-	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "int64")},
-	{"bool", 0, fmt.Errorf(_ErrWrongType, "bool", "bool", "int64")},
+	{"undefined", 0, fmt.Errorf(errUndefined, "undefined")},
+	{"string", 0, fmt.Errorf(errWrongType, "string", "string", "int64")},
+	{"bool", 0, fmt.Errorf(errWrongType, "bool", "bool", "int64")},
 	{"int64", 12345, nil},
-	{"float64", 0, fmt.Errorf(_ErrWrongType, "float64", "float64", "int64")},
-	{"time", 0, fmt.Errorf(_ErrWrongType, "time", "time.Time", "int64")},
-	{"duration", 0, fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "int64")},
+	{"float64", 0, fmt.Errorf(errWrongType, "float64", "float64", "int64")},
+	{"time", 0, fmt.Errorf(errWrongType, "time", "time.Time", "int64")},
+	{"duration", 0, fmt.Errorf(errWrongType, "duration", "time.Duration", "int64")},
 }
 
 func TestConfigInt64(t *testing.T) {
@@ -131,13 +131,13 @@ var float64Tests = []struct {
 	v   float64
 	err error
 }{
-	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
-	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "float64")},
-	{"bool", 0, fmt.Errorf(_ErrWrongType, "bool", "bool", "float64")},
-	{"int64", 0, fmt.Errorf(_ErrWrongType, "int64", "int64", "float64")},
+	{"undefined", 0, fmt.Errorf(errUndefined, "undefined")},
+	{"string", 0, fmt.Errorf(errWrongType, "string", "string", "float64")},
+	{"bool", 0, fmt.Errorf(errWrongType, "bool", "bool", "float64")},
+	{"int64", 0, fmt.Errorf(errWrongType, "int64", "int64", "float64")},
 	{"float64", 123.45, nil},
-	{"time", 0, fmt.Errorf(_ErrWrongType, "time", "time.Time", "float64")},
-	{"duration", 0, fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "float64")},
+	{"time", 0, fmt.Errorf(errWrongType, "time", "time.Time", "float64")},
+	{"duration", 0, fmt.Errorf(errWrongType, "duration", "time.Duration", "float64")},
 }
 
 func TestConfigFloat64(t *testing.T) {
@@ -157,13 +157,13 @@ var stringTests = []struct {
 	v   string
 	err error
 }{
-	{"undefined", "", fmt.Errorf(_ErrUndefined, "undefined")},
+	{"undefined", "", fmt.Errorf(errUndefined, "undefined")},
 	{"string", "hello", nil},
-	{"bool", "", fmt.Errorf(_ErrWrongType, "bool", "bool", "string")},
-	{"int64", "", fmt.Errorf(_ErrWrongType, "int64", "int64", "string")},
-	{"float64", "", fmt.Errorf(_ErrWrongType, "float64", "float64", "string")},
-	{"time", "", fmt.Errorf(_ErrWrongType, "time", "time.Time", "string")},
-	{"duration", "", fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "string")},
+	{"bool", "", fmt.Errorf(errWrongType, "bool", "bool", "string")},
+	{"int64", "", fmt.Errorf(errWrongType, "int64", "int64", "string")},
+	{"float64", "", fmt.Errorf(errWrongType, "float64", "float64", "string")},
+	{"time", "", fmt.Errorf(errWrongType, "time", "time.Time", "string")},
+	{"duration", "", fmt.Errorf(errWrongType, "duration", "time.Duration", "string")},
 }
 
 func TestConfigString(t *testing.T) {
@@ -183,13 +183,13 @@ var timeTests = []struct {
 	v   time.Time
 	err error
 }{
-	{"undefined", time.Time{}, fmt.Errorf(_ErrUndefined, "undefined")},
-	{"string", time.Time{}, fmt.Errorf(_ErrWrongType, "string", "string", "time.Time")},
-	{"bool", time.Time{}, fmt.Errorf(_ErrWrongType, "bool", "bool", "time.Time")},
-	{"int64", time.Time{}, fmt.Errorf(_ErrWrongType, "int64", "int64", "time.Time")},
-	{"float64", time.Time{}, fmt.Errorf(_ErrWrongType, "float64", "float64", "time.Time")},
+	{"undefined", time.Time{}, fmt.Errorf(errUndefined, "undefined")},
+	{"string", time.Time{}, fmt.Errorf(errWrongType, "string", "string", "time.Time")},
+	{"bool", time.Time{}, fmt.Errorf(errWrongType, "bool", "bool", "time.Time")},
+	{"int64", time.Time{}, fmt.Errorf(errWrongType, "int64", "int64", "time.Time")},
+	{"float64", time.Time{}, fmt.Errorf(errWrongType, "float64", "float64", "time.Time")},
 	{"time", time.Date(2012, 12, 28, 15, 10, 15, 0, time.UTC), nil},
-	{"duration", time.Time{}, fmt.Errorf(_ErrWrongType, "duration", "time.Duration", "time.Time")},
+	{"duration", time.Time{}, fmt.Errorf(errWrongType, "duration", "time.Duration", "time.Time")},
 }
 
 func TestConfigTime(t *testing.T) {
@@ -209,12 +209,12 @@ var durationTests = []struct {
 	v   time.Duration
 	err error
 }{
-	{"undefined", 0, fmt.Errorf(_ErrUndefined, "undefined")},
-	{"string", 0, fmt.Errorf(_ErrWrongType, "string", "string", "time.Duration")},
-	{"bool", 0, fmt.Errorf(_ErrWrongType, "bool", "bool", "time.Duration")},
-	{"int64", 0, fmt.Errorf(_ErrWrongType, "int64", "int64", "time.Duration")},
-	{"float64", 0, fmt.Errorf(_ErrWrongType, "float64", "float64", "time.Duration")},
-	{"time", 0, fmt.Errorf(_ErrWrongType, "time", "time.Time", "time.Duration")},
+	{"undefined", 0, fmt.Errorf(errUndefined, "undefined")},
+	{"string", 0, fmt.Errorf(errWrongType, "string", "string", "time.Duration")},
+	{"bool", 0, fmt.Errorf(errWrongType, "bool", "bool", "time.Duration")},
+	{"int64", 0, fmt.Errorf(errWrongType, "int64", "int64", "time.Duration")},
+	{"float64", 0, fmt.Errorf(errWrongType, "float64", "float64", "time.Duration")},
+	{"time", 0, fmt.Errorf(errWrongType, "time", "time.Time", "time.Duration")},
 	{"duration", 2 * time.Second, nil},
 }
 
