@@ -26,15 +26,19 @@ func TestConfigSelect(t *testing.T) {
 		t.Errorf(`Config.Select("foo").Get("def") != Config.Get("foo.def")`)
 	}
 
-	keys := sample.Select("foo").Keys()
-	if len(keys) != 2 || keys[0] != "abc" || keys[1] != "def" {
-		t.Errorf(`Config.Select("foo").Keys() != []{"abc","def"}`)
+	got := sample.Select("foo").Keys()
+	want := []string{"abc", "def"}
+
+	if !eq(got, want) {
+		t.Errorf("sample.Select(\"foo\").Keys():")
+		t.Errorf("   got %v", got)
+		t.Errorf("  want %v", want)
 	}
 }
 
 func TestConfigKeys(t *testing.T) {
-	actual := sample.Keys()
-	expected := []string{
+	got := sample.Keys()
+	want := []string{
 		"bool",
 		"duration",
 		"float64",
@@ -45,39 +49,35 @@ func TestConfigKeys(t *testing.T) {
 		"time",
 	}
 
-	if len(actual) != len(expected) {
-		t.Fatalf("Config.Keys() -> %v (want %v)", actual, expected)
-	}
-
-	for i := 0; i < len(expected); i++ {
-		if actual[i] != expected[i] {
-			t.Fatalf("Config.Keys() -> %v (want %v)", actual, expected)
-		}
+	if !eq(got, want) {
+		t.Errorf("sample.Keys():")
+		t.Errorf("   got %v", got)
+		t.Errorf("  want %v", want)
 	}
 }
 
 func TestConfigGet(t *testing.T) {
-	v, ok := sample.Get("undefined")
-	if v != nil || ok != false {
-		t.Fatalf("Config.Get(%q) -> %#v, %#v (want %#v, %#v)",
-			"undefined", v, ok, nil, false)
+	got, ok := sample.Get("undefined")
+	if got != nil || ok != false {
+		t.Errorf("sample.Get(\"undefined\"):")
+		t.Errorf("   got %#v, %#v", got, ok)
+		t.Errorf("   got %#v, %#v", nil, false)
 	}
 
-	raw := map[string]interface{}(sample.data)
-
-	for key, want := range raw {
-		v, ok := sample.Get(key)
-		if v != want || ok != true {
-			t.Fatalf("Config.Get(%q) -> %#v, %#v (want %#v, %#v)",
-				key, v, ok, want, true)
+	for key, want := range sample.data {
+		got, ok := sample.Get(key)
+		if got != want || ok != true {
+			t.Errorf("sample.Get(%q):", key)
+			t.Errorf("   got %#v, %#v", got, ok)
+			t.Errorf("  want %#v, %#v", want, true)
 		}
 	}
 }
 
 var boolTests = []struct {
-	k   string
-	v   bool
-	err error
+	key  string
+	want bool
+	err  error
 }{
 	{"undefined", false, fmt.Errorf(errUndefined, "undefined")},
 	{"string", false, fmt.Errorf(errWrongType, "string", "string", "bool")},
@@ -91,19 +91,20 @@ var boolTests = []struct {
 func TestConfigBool(t *testing.T) {
 	for _, test := range boolTests {
 		func() {
-			defer shouldPanic(t, "Config.Bool", test.k, test.err)
-			if v := sample.Bool(test.k); v != test.v {
-				t.Errorf("Config.Bool(%q) -> %#v (want %#v)",
-					test.k, v, test.v)
+			defer shouldPanic(t, "Config.Bool", test.key, test.err)
+			if got := sample.Bool(test.key); got != test.want {
+				t.Errorf("Config.Bool(%q):", test.key)
+				t.Errorf("   got %#v", got)
+				t.Errorf("  want %#v", test.want)
 			}
 		}()
 	}
 }
 
 var int64Tests = []struct {
-	k   string
-	v   int64
-	err error
+	key  string
+	want int64
+	err  error
 }{
 	{"undefined", 0, fmt.Errorf(errUndefined, "undefined")},
 	{"string", 0, fmt.Errorf(errWrongType, "string", "string", "int64")},
@@ -117,19 +118,20 @@ var int64Tests = []struct {
 func TestConfigInt64(t *testing.T) {
 	for _, test := range int64Tests {
 		func() {
-			defer shouldPanic(t, "Config.Int64", test.k, test.err)
-			if v := sample.Int64(test.k); v != test.v {
-				t.Errorf("Config.Int64(%q) -> %#v (want %#v)",
-					test.k, v, test.v)
+			defer shouldPanic(t, "Config.Int64", test.key, test.err)
+			if got := sample.Int64(test.key); got != test.want {
+				t.Errorf("Config.Int64(%q):", test.key)
+				t.Errorf("   got %#v", got)
+				t.Errorf("  want %#v", test.want)
 			}
 		}()
 	}
 }
 
 var float64Tests = []struct {
-	k   string
-	v   float64
-	err error
+	key  string
+	want float64
+	err  error
 }{
 	{"undefined", 0, fmt.Errorf(errUndefined, "undefined")},
 	{"string", 0, fmt.Errorf(errWrongType, "string", "string", "float64")},
@@ -143,19 +145,20 @@ var float64Tests = []struct {
 func TestConfigFloat64(t *testing.T) {
 	for _, test := range float64Tests {
 		func() {
-			defer shouldPanic(t, "Config.Float64", test.k, test.err)
-			if v := sample.Float64(test.k); v != test.v {
-				t.Errorf("Config.Float64(%q) -> %#v (want %#v)",
-					test.k, v, test.v)
+			defer shouldPanic(t, "Config.Float64", test.key, test.err)
+			if got := sample.Float64(test.key); got != test.want {
+				t.Errorf("Config.Float64(%q):", test.key)
+				t.Errorf("   got %#v", got)
+				t.Errorf("  want %#v", test.want)
 			}
 		}()
 	}
 }
 
 var stringTests = []struct {
-	k   string
-	v   string
-	err error
+	key  string
+	want string
+	err  error
 }{
 	{"undefined", "", fmt.Errorf(errUndefined, "undefined")},
 	{"string", "hello", nil},
@@ -169,19 +172,20 @@ var stringTests = []struct {
 func TestConfigString(t *testing.T) {
 	for _, test := range stringTests {
 		func() {
-			defer shouldPanic(t, "Config.String", test.k, test.err)
-			if v := sample.String(test.k); v != test.v {
-				t.Errorf("Config.String(%q) -> %#v (want %#v)",
-					test.k, v, test.v)
+			defer shouldPanic(t, "Config.String", test.key, test.err)
+			if got := sample.String(test.key); got != test.want {
+				t.Errorf("Config.String(%q):", test.key)
+				t.Errorf("   got %#v", got)
+				t.Errorf("  want %#v", test.want)
 			}
 		}()
 	}
 }
 
 var timeTests = []struct {
-	k   string
-	v   time.Time
-	err error
+	key  string
+	want time.Time
+	err  error
 }{
 	{"undefined", time.Time{}, fmt.Errorf(errUndefined, "undefined")},
 	{"string", time.Time{}, fmt.Errorf(errWrongType, "string", "string", "time.Time")},
@@ -195,19 +199,20 @@ var timeTests = []struct {
 func TestConfigTime(t *testing.T) {
 	for _, test := range timeTests {
 		func() {
-			defer shouldPanic(t, "Config.Time", test.k, test.err)
-			if v := sample.Time(test.k); v != test.v {
-				t.Errorf("Config.Time(%q) -> %#v (want %#v)",
-					test.k, v, test.v)
+			defer shouldPanic(t, "Config.Time", test.key, test.err)
+			if got := sample.Time(test.key); got != test.want {
+				t.Errorf("Config.Time(%q):", test.key)
+				t.Errorf("   got %#v", got)
+				t.Errorf("  want %#v", test.want)
 			}
 		}()
 	}
 }
 
 var durationTests = []struct {
-	k   string
-	v   time.Duration
-	err error
+	key  string
+	want time.Duration
+	err  error
 }{
 	{"undefined", 0, fmt.Errorf(errUndefined, "undefined")},
 	{"string", 0, fmt.Errorf(errWrongType, "string", "string", "time.Duration")},
@@ -221,10 +226,11 @@ var durationTests = []struct {
 func TestConfigDuration(t *testing.T) {
 	for _, test := range durationTests {
 		func() {
-			defer shouldPanic(t, "Config.Duration", test.k, test.err)
-			if v := sample.Duration(test.k); v != test.v {
-				t.Errorf("Config.Duration(%q) -> %#v (want %#v)",
-					test.k, v, test.v)
+			defer shouldPanic(t, "Config.Duration", test.key, test.err)
+			if got := sample.Duration(test.key); got != test.want {
+				t.Errorf("Config.Duration(%q):", test.key)
+				t.Errorf("   got %#v", got)
+				t.Errorf("  want %#v", test.want)
 			}
 		}()
 	}
@@ -235,14 +241,9 @@ func shouldPanic(t *testing.T, method, key string, want error) {
 	switch {
 	case r == nil && want != nil:
 		fallthrough
-	case r != nil && !isSameError(r.(error), want):
-		t.Errorf(method+"(%q) recover -> %#v (want %#v)", key, r, want)
+	case r != nil && !eq(r.(error), want):
+		t.Errorf(method+"(%q):", key)
+		t.Errorf("  recovered %v", r)
+		t.Errorf("       want %v", want)
 	}
-}
-
-func isSameError(a, b error) bool {
-	if a == nil || b == nil {
-		return a == b
-	}
-	return a.Error() == b.Error()
 }
