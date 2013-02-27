@@ -6,29 +6,18 @@ import (
 	"strings"
 )
 
-const (
-	_ErrInvalidIndent = "invalid indentation on line %d"
-	_ErrInvalidKey    = "invalid key on line %d"
-	_ErrInvalidValue  = "unrecognized value on line %d: %q"
-	_ErrRedefined     = "%q redefined on line %d (original on line %d)"
-)
+// String consisting of all characters to be treated as whitespace.
+const Space = " \t\r\n\v\f\u0085\u00a0"
 
-type definition struct {
-	key  string
-	val  interface{}
-	raw  string
-	line int
-}
-
-// Parses a configuration file. Panics reading fails, or if the file
-// contains a syntax error.
+// Parses a configuration file. Panics if reading the file fails, or if
+// it contains any syntax errors.
 func Load(path string) Config {
 	in, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 
-	conf, err := Parse(in)
+	conf, err := Read(in)
 	if err != nil {
 		panic(err)
 	}
@@ -38,176 +27,239 @@ func Load(path string) Config {
 
 // Generates a Config instance from a raw configuration file. Returns an
 // error if the source contains a syntax error.
-func Parse(in []byte) (Config, error) {
-	defs, err := process(in)
+func Read(in []byte) (Config, error) {
+	// generate a slice of lines from the input, while parsing
+	// indentation and discarding empty lines
+	lines, err := split(in)
 	if err != nil {
 		return nil, err
 	}
 
-	m := make(map[string]interface{})
-	for _, def := range defs {
-		m[def.key] = def.val
+	// reduce the lines to a set of assignments
+	assignments, err := interpret(lines)
+	if err != nil {
+		return nil, err
 	}
 
-	return &config{"", m}, nil
+	// generate the key lookup map, while checking for name conflicts
+	table, err := initialize(assignments)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config{"", table}, nil
 }
 
-// Processes configuration data, generating a set of definitions. Returns an
-// error if the source contains a syntax error.
-func process(in []byte) ([]definition, error) {
-	lines := strings.Split(string(in), "\n")
+const (
+	errIndent   = "illegal indentation on line %d"
+	errKey      = "illegal key on line %d"
+	errValue    = "illegal value on line %d: %q"
+	errConflict = "key %q (line %d) collides with %q (line %d)"
+)
 
-	defs := make([]definition, 0)
-	where := make(map[string]int)
+type line struct {
+	index   int
+	depth   int
+	content string
+}
 
-	stack := make([]string, 0)
-	levels := make([]string, 0)
-	allowDeeper := true
+// Splits a raw input file into lines, discarding all empty lines in the
+// process. Returns a non-nil error value if an indentation-based syntax error
+// was encountered.
+func split(in []byte) ([]line, error) {
+	raw := strings.Split(string(in), "\n")
 
-	for i, line := range lines {
-		if isEmpty(line) {
+	lines := make([]line, 0)
+	indents := make([]string, 0)
+
+	for index, content := range raw {
+		// discard empty lines
+		if isEmpty(content) {
 			continue
 		}
 
-		s, k, v := split(line)
-		d := depth(levels, s)
+		indent, content := selectSpace(content)
+		level := len(indents)
 
-		if d < 0 || (d == len(levels) && !allowDeeper) {
-			return nil, fmt.Errorf(_ErrInvalidIndent, i+1)
-		}
+		// lines should be 1-indexed
+		index++
 
-		// trim our history
-		if d < len(levels) {
-			stack = stack[:d]
-			levels = levels[:d]
-		}
-
-		stack = append(stack, k)
-		levels = append(levels, s)
-
-		// make sure the line specifies a valid key
-		if k == "" {
-			return nil, fmt.Errorf(_ErrInvalidKey, i+1)
-		}
-
-		// does the current line contain an assignment?
-		if strings.ContainsRune(line, '=') {
-			key := strings.Join(stack, ".")
-
-			// make sure this key hasn't already been defined
-			if prev := where[key]; prev != 0 {
-				return nil, fmt.Errorf(_ErrRedefined, key, i+1, prev)
+		// measure the line's indentation depth
+		switch {
+		case indent == "":
+			level = 0
+		case len(indents) == 0:
+			return nil, fmt.Errorf(errIndent, index)
+		default:
+			for i, prev := range indents {
+				if !strings.HasPrefix(indent, prev) {
+					return nil, fmt.Errorf(errIndent, index)
+				}
+				if len(indent) == len(prev) {
+					level = i
+					break
+				}
 			}
+		}
 
-			where[key] = i + 1
+		indents = append(indents[:level], indent)
+		lines = append(lines, line{index, level, content})
+	}
 
-			parsed, ok := readLiteral(v)
-			if !ok {
-				return nil, fmt.Errorf(_ErrInvalidValue, i+1, v)
-			}
+	return lines, nil
+}
 
-			defs = append(defs, definition{
-				key:  key,
-				val:  parsed,
-				raw:  v,
-				line: i + 1,
-			})
+type assignment struct {
+	line    int
+	key     string
+	literal string
+	value   interface{}
+}
 
-			allowDeeper = false
+// Transforms a set of lines to a set of key assignments. Resolves key
+// hierarchy and parses values, among other things. Returns a non-nil
+// error if any line contains an illegal keys or value.
+func interpret(lines []line) ([]assignment, error) {
+	output := make([]assignment, 0)
+	groups := make([]string, 0)
+
+	for _, line := range lines {
+		key, rest := selectKey(line.content)
+		groups = append(groups[:line.depth], key)
+
+		if isEmpty(rest) {
 			continue
 		}
 
-		allowDeeper = true
+		rest, ok := consumeSeparator(rest)
+		if key == "" || !ok && !isEmpty(rest) {
+			return nil, fmt.Errorf(errKey, line.index)
+		}
+
+		value, ok := parseLiteral(rest)
+		if !ok {
+			return nil, fmt.Errorf(errValue, line.index, rest)
+		}
+
+		output = append(output, assignment{
+			line.index, strings.Join(groups, "."), rest, value,
+		})
 	}
 
-	return defs, nil
+	return output, nil
 }
 
-// Splits a line into three components: leading whitespace, a key,
-// and optionally a raw value.
-func split(line string) (space, key, value string) {
-	for i := 0; i < len(line); i++ {
-		if line[i] != ' ' && line[i] != '\t' {
+// Generates a map with (key -> value) pairs for each assignment. Also checks
+// for key name conflicts.
+func initialize(in []assignment) (map[string]interface{}, error) {
+	out := make(map[string]interface{})
+
+	for i, a := range in {
+		for j, b := range in {
+			if i == j {
+				continue
+			}
+
+			if conflicts(a.key, b.key) {
+				// always consider the later of the two lines the culprit
+				if a.line < b.line {
+					a, b = b, a
+				}
+
+				return nil, fmt.Errorf(errConflict,
+					a.key, a.line, b.key, b.line)
+			}
+		}
+
+		out[a.key] = a.value
+	}
+
+	return out, nil
+}
+
+// Returns true if the key b collides with any part of a.
+//     conflicts("foo.bar", "foo")      // -> true
+//     conflicts("foo.bar", "foo.bar")  // -> true
+//     conflicts("foo.bar", "foo.bars") // -> false
+func conflicts(a, b string) bool {
+	return strings.HasPrefix(a, b) && (len(a) == len(b) || a[len(b)] == '.')
+}
+
+// Returns true if the line is either empty or completely made up of
+// whitespace, optionally ending with a comment.
+func isEmpty(in string) bool {
+	for _, ch := range in {
+		switch {
+		case ch == '#':
+			return true
+		case !strings.ContainsRune(Space, ch):
+			return false
+		}
+	}
+	return true
+}
+
+// Takes all valid key runes from the beginning of input.
+func selectSpace(in string) (string, string) {
+	for i := 0; i < len(in); i++ {
+		if !strings.ContainsRune(Space, rune(in[i])) {
+			return in[:i], in[i:]
+		}
+	}
+	return in, ""
+}
+
+// Takes all valid key runes from the beginning of input.
+func selectKey(in string) (string, string) {
+	for i := 0; i < len(in); i++ {
+		b := in[i]
+		if b == '=' || b == '#' || strings.ContainsRune(Space, rune(b)) {
+			return in[:i], in[i:]
+		}
+	}
+	return in, ""
+}
+
+// Removes all whitespace and up to one '=' rune from the beginning of the
+// input string. The second return value signals whether or not an equal sign
+// was encountered in the process.
+func consumeSeparator(in string) (string, bool) {
+	eq := false
+	i := 0
+
+	for ; i < len(in); i++ {
+		b := in[i]
+
+		if b == '=' && !eq {
+			eq = true
+		} else if !strings.ContainsRune(Space, rune(in[i])) {
 			break
 		}
-		space = string(line[:i+1])
 	}
 
-	if eq := strings.IndexRune(line, '='); eq != -1 {
-		key = strings.TrimRight(line[len(space):eq], " \t")
-		value = strings.TrimLeft(line[eq+1:], " \t")
-	} else {
-		key = strings.TrimRight(line[len(space):], " \t")
-	}
-
-	return
+	return in[i:], eq
 }
 
-// Traverses a slice of previous indentation levels to see where the subject
-// indentation fits in. Returns an integer between 0 and len(context) on
-// success, or -1 if subject is not a valid indentation level in this context.
-func depth(context []string, subject string) int {
-	if subject == "" {
-		return 0
-	}
-
-	// non-empty indentation without any context is illegal
-	if len(context) == 0 {
-		return -1
-	}
-
-	for i, previous := range context {
-		if !strings.HasPrefix(subject, previous) {
-			return -1
-		}
-		if len(subject) == len(previous) {
-			return i
-		}
-	}
-
-	// the subject line is further indented than its parent
-	return len(context)
-}
-
-// Tries to extract a literal value from a string.
-func readLiteral(s string) (interface{}, bool) {
-	if v, n := readBool(s); n != 0 && isEmpty(s[n:]) {
+// Attempts to parse s  as any of the known types.
+func parseLiteral(in string) (interface{}, bool) {
+	if v, n := readBool(in); n > 0 && isEmpty(in[n:]) {
 		return v, true
 	}
-	if v, n := readInt64(s); n != 0 && isEmpty(s[n:]) {
+	if v, n := readInt64(in); n > 0 && isEmpty(in[n:]) {
 		return v, true
 	}
-	if v, n := readFloat64(s); n != 0 && isEmpty(s[n:]) {
+	if v, n := readFloat64(in); n > 0 && isEmpty(in[n:]) {
 		return v, true
 	}
-	if v, n := readString(s); n != 0 && isEmpty(s[n:]) {
+	if v, n := readString(in); n > 0 && isEmpty(in[n:]) {
 		return v, true
 	}
-	if v, n := readTime(s); n != 0 && isEmpty(s[n:]) {
+	if v, n := readTime(in); n > 0 && isEmpty(in[n:]) {
 		return v, true
 	}
-	if v, n := readDuration(s); n != 0 && isEmpty(s[n:]) {
+	if v, n := readDuration(in); n > 0 && isEmpty(in[n:]) {
 		return v, true
 	}
 
 	return nil, false
-}
-
-// Returns true if the line is completely made up of whitespace, or if the
-// line contains only whitespace and a comment rune ('#').
-func isEmpty(s string) bool {
-	for i := 0; i < len(s); i++ {
-		b := s[i]
-
-		if b == ' ' || b == '\t' || b == '\r' {
-			continue
-		}
-		if b == '#' {
-			break
-		}
-
-		return false
-	}
-
-	return true
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -43,7 +44,7 @@ func (c *config) Keys() []string {
 	keys := make([]string, 0)
 
 	for key, _ := range c.data {
-		if hasPrefix(key, c.prefix) {
+		if strings.HasPrefix(key, c.prefix) {
 			keys = append(keys, key[len(c.prefix):])
 		}
 	}
@@ -150,8 +151,4 @@ func (c *config) Duration(key string) time.Duration {
 	}
 
 	return d
-}
-
-func hasPrefix(haystack, needle string) bool {
-	return len(haystack) >= len(needle) && haystack[:len(needle)] == needle
 }
