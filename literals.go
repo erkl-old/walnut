@@ -8,87 +8,77 @@ import (
 )
 
 var (
-	_TruthyRegexp = regexp.MustCompile(`^[ \t]*true`)
-	_FalsyRegexp  = regexp.MustCompile(`^[ \t]*false`)
-	_IntRegexp    = regexp.MustCompile(`^[ \t]*([\+\-]?\d+)`)
-	_FloatRegexp  = regexp.MustCompile(`^[ \t]*([\+\-]?\d+\.\d+)`)
-	_TimeRegexp   = regexp.MustCompile(
-		`^[ \t]*(\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)? [\-\+]\d{4})`)
-
-	_MaxInt64    int64         = 1<<63 - 1
-	_MaxDuration time.Duration = 1<<63 - 1
+	reInt   = regexp.MustCompile(`^[\+\-]?\d+`)
+	reFloat = regexp.MustCompile(`^[\+\-]?\d+\.\d+`)
+	reTime  = regexp.MustCompile(
+		`^\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)? [\-\+]\d{4}`)
 )
 
-// Attempts to extract a string literal from the beginning of `in`.
-func readBool(s string) (bool, int) {
-	if m := _TruthyRegexp.FindStringIndex(s); m != nil {
-		return true, m[1]
-	}
-	if m := _FalsyRegexp.FindStringIndex(s); m != nil {
-		return false, m[1]
+const maxDuration = 1<<63 - 1
+
+// Attempts to extract a boolean from the beginning of
+// the input string.
+func readBool(in string) (bool, int) {
+	switch {
+	case strings.HasPrefix(in, "true"):
+		return true, 4
+	case strings.HasPrefix(in, "false"):
+		return false, 5
 	}
 
 	return false, 0
 }
 
-// Attempts to extract a signed integer from the beginning of `in`.
-func readInt64(s string) (int64, int) {
-	m := _IntRegexp.FindStringSubmatchIndex(s)
+// Attempts to extract an integer from the beginning of
+// the input string.
+func readInt64(in string) (int64, int) {
+	m := reInt.FindStringSubmatchIndex(in)
 	if m == nil {
 		return 0, 0
 	}
 
-	num := s[m[2]:m[3]]
-	v, err := strconv.ParseInt(num, 10, 64)
+	v, err := strconv.ParseInt(in[m[0]:m[1]], 10, 64)
 	if err != nil {
 		return 0, 0
 	}
 
-	return v, m[3]
+	return v, m[1]
 }
 
-// Attempts to extract a floating point value from the beginning of `in`.
-func readFloat64(s string) (float64, int) {
-	m := _FloatRegexp.FindStringSubmatchIndex(s)
+// Attempts to extract a floating point value from the
+// beginning of the input string.
+func readFloat64(in string) (float64, int) {
+	m := reFloat.FindStringSubmatchIndex(in)
 	if m == nil {
 		return 0, 0
 	}
 
-	slice := s[m[2]:m[3]]
-	v, err := strconv.ParseFloat(slice, 64)
+	v, err := strconv.ParseFloat(in[m[0]:m[1]], 64)
 	if err != nil {
 		return 0, 0
 	}
 
-	return v, m[3]
+	return v, m[1]
 }
 
-// Attempts to extract a timestamp from the beginning of `in`.
+// Attempts to extract a string value from the beginning of
+// the input string.
 func readString(s string) (string, int) {
-	start := 0
-	for start < len(s) && (s[start] == ' ' || s[start] == '\t') {
-		start++
-	}
-
-	if len(s)-start < 2 || s[start] != '"' {
+	if len(s) < 2 || s[0] != '"' {
 		return "", 0
 	}
 
-	i := start + 1 // jump the first double quote
-	end := -1
+	i, end := 1, -1
 	escaped := false
 
-	for end == -1 {
+	for end < 0 {
 		if i == len(s) {
-			// end of input reached before finding a closing quote
+			// found EOL reached before the closing quote
 			return "", 0
 		}
 
-		b := s[i]
-
-		switch {
-		case b <= 0x20:
-			// control characters aren't inside a string literal
+		switch b := s[i]; {
+		case b < 0x20:
 			return "", 0
 		case escaped:
 			escaped = false
@@ -101,7 +91,7 @@ func readString(s string) (string, int) {
 		i++
 	}
 
-	v, err := strconv.Unquote(s[start : end+1])
+	v, err := strconv.Unquote(s[:end+1])
 	if err != nil {
 		return "", 0
 	}
@@ -110,56 +100,42 @@ func readString(s string) (string, int) {
 }
 
 // Attempts to extract a timestamp from the beginning of `in`.
-func readTime(s string) (time.Time, int) {
-	m := _TimeRegexp.FindStringSubmatchIndex(s)
-	if m == nil {
-		return time.Time{}, 0
-	}
-
-	slice := s[m[2]:m[3]]
-	v, err := time.Parse("2006-01-02 15:04:05 -0700", slice)
-	if err != nil {
-		return time.Time{}, 0
-	}
-
-	return v, m[3]
-}
-
-// Attempts to extract a timestamp from the beginning of `in`.
-func readDuration(s string) (time.Duration, int) {
+func readDuration(in string) (time.Duration, int) {
 	var total, prev time.Duration
 	var offset int
 
 	for {
-		num, unit, n := readDurationPartial(s[offset:])
+		num, unit, n := readDurationPartial(in[offset:])
 		if n == 0 {
 			break
 		}
 
-		// time units must appear in descending order (greatest first),
+		switch {
+		// units must appear in descending order (greatest first),
 		// and only once each
-		if prev != 0 && unit >= prev {
+		case prev != 0 && unit >= prev:
+			return 0, 0
+		// make sure this component doesn't single-handedly overflow
+		// time.Duration values
+		case num > 0 && unit > maxDuration/num:
+			return 0, 0
+		// would adding this component to the current total cause it
+		// to overflow?
+		case num*unit > maxDuration-total:
 			return 0, 0
 		}
 
-		prev = unit
-		v := time.Duration(num) * unit
-
-		// guard against integer overflow
-		if v > _MaxDuration-total {
-			return 0, 0
-		}
-
-		total += v
 		offset += n
+		total += num * unit
+		prev = unit
 	}
 
 	return total, offset
 }
 
-var timeUnits = []struct {
-	name string
-	dur  time.Duration
+var durations = []struct {
+	name  string
+	value time.Duration
 }{
 	{"ns", time.Nanosecond},
 	{"μs", time.Microsecond}, // \u03bc
@@ -173,37 +149,42 @@ var timeUnits = []struct {
 	{"w", 7 * 24 * time.Hour},
 }
 
-func readDurationPartial(s string) (num int64, unit time.Duration, n int) {
-	i, end := 0, len(s)
-
+func readDurationPartial(in string) (num, unit time.Duration, n int) {
 	// skip whitespace
-	for i < end && (s[i] == ' ' || s[i] == '\t') {
-		i++
+	for n < len(in) && strings.ContainsRune(Space, rune(in[n])) {
+		n++
 	}
 
-	start := i
-
-	for ; i < end && ('0' <= s[i] && s[i] <= '9'); i++ {
-		digit := int64(s[i] - '0')
-
-		// guard against overflow
-		if digit > _MaxInt64-(num*10) {
-			return 0, 0, 0
-		}
-
-		num = (num * 10) + digit
+	s := n
+	for n < len(in) && ('0' <= in[n] && in[n] <= '9') {
+		n++
 	}
 
-	// did we find any digits?
-	if i == start {
+	unsigned, err := strconv.ParseUint(in[s:n], 10, 63)
+	if err != nil {
 		return 0, 0, 0
 	}
 
-	for _, unit := range timeUnits {
-		if strings.HasPrefix(s[i:], unit.name) {
-			return num, unit.dur, i + len(unit.name)
+	for _, unit := range durations {
+		if strings.HasPrefix(in[n:], unit.name) {
+			return time.Duration(unsigned), unit.value, n + len(unit.name)
 		}
 	}
 
 	return 0, 0, 0
+}
+
+// Attempts to extract a timestamp from the beginning of `in`.
+func readTime(in string) (time.Time, int) {
+	m := reTime.FindStringSubmatchIndex(in)
+	if m == nil {
+		return time.Time{}, 0
+	}
+
+	v, err := time.Parse("2006-01-02 15:04:05 -0700", in[m[0]:m[1]])
+	if err != nil {
+		return time.Time{}, 0
+	}
+
+	return v, m[1]
 }
