@@ -118,6 +118,13 @@ var interpretTests = []struct {
 		},
 		nil,
 	},
+	{
+		[]line{{1, 0, "♫ = 123"}},
+		[]assignment{
+			{1, "♫", "123", int64(123)},
+		},
+		nil,
+	},
 	{[]line{{1, 0, "=1"}}, nil, fmt.Errorf(errKey, 1)},
 	{[]line{{1, 0, " = 1"}}, nil, fmt.Errorf(errKey, 1)},
 	{[]line{{1, 0, "== 1"}}, nil, fmt.Errorf(errKey, 1)},
